@@ -1,221 +1,188 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import CategoriesBrandsManager from "./CategoriesBrandsManager"; // Ensure this is correctly imported
-import CategoriesManager from "./CategoriesManager";
-import BrandsManager from "./BrandsManager";
+import { toast } from "react-hot-toast";
 
-const UploadProduct = () => {
-  const [name, setName] = useState("");
-  const [brand, setBrand] = useState("");
+const EditProduct = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [productName, setProductName] = useState("");
+  const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [countInStock, setCountInStock] = useState("");
-  const [images, setImages] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [sellingPrice, setSellingPrice] = useState("");
+  const [productImages, setProductImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
 
   useEffect(() => {
-    const fetchCategoriesAndBrands = async () => {
+    const fetchProduct = async () => {
       try {
-        const [categoryResponse, brandResponse] = await Promise.all([
-          axios.get("http://localhost:5000/api/categories/get"),
-          axios.get("http://localhost:5000/api/brands/get"),
-        ]);
-        setCategories(categoryResponse.data);
-        setBrands(brandResponse.data);
-      } catch (err) {
-        console.error("Error fetching categories or brands:", err);
-        setError("Failed to load categories or brands");
+        const response = await axios.get(
+          `http://localhost:5000/api/products/${id}`
+        );
+        const productData = response.data.product;
+        setProduct(productData);
+        setProductName(productData.name);
+        setBrandName(productData.brandName);
+        setCategory(productData.category);
+        setDescription(productData.description);
+        setPrice(productData.price);
+        setSellingPrice(productData.sellingPrice);
+        setProductImages(productData.productImage);
+      } catch (error) {
+        console.error("Error fetching product:", error);
       }
     };
-    fetchCategoriesAndBrands();
-  }, []);
+
+    fetchProduct();
+  }, [id]);
 
   const handleImageChange = (event) => {
-    setImages([...images, ...event.target.files]);
-  };
+    const newFiles = Array.from(event.target.files);
+    const existingFiles = newImages.map((file) => file.name);
 
-  const handleRemoveImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
+    const duplicates = newFiles.filter((file) =>
+      existingFiles.includes(file.name)
+    );
+
+    if (duplicates.length > 0) {
+      toast.error("Some images are duplicates and won't be added.");
+    } else {
+      const uniqueFiles = newFiles.filter(
+        (file) => !existingFiles.includes(file.name)
+      );
+      setNewImages([...newImages, ...uniqueFiles]);
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true);
-    setError("");
-
     const formData = new FormData();
-    formData.append("name", name);
-    formData.append("brand", brand);
+    formData.append("productName", productName);
+    formData.append("brandName", brandName);
     formData.append("category", category);
     formData.append("description", description);
     formData.append("price", price);
-    formData.append("quantity", quantity);
-    formData.append("countInStock", countInStock);
+    formData.append("sellingPrice", sellingPrice);
 
-    for (let i = 0; i < images.length; i++) {
-      formData.append("productImage", images[i]);
+    for (let i = 0; i < productImages.length; i++) {
+      formData.append("existingImages", productImages[i]);
+    }
+
+    for (let i = 0; i < newImages.length; i++) {
+      formData.append("newImages", newImages[i]);
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/products/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      console.log("Product uploaded successfully:", response.data);
+      const token = localStorage.getItem("token");
+      await axios.put(`http://localhost:5000/api/products/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      toast.success("Product updated successfully!");
+      navigate(`/products-list`);
     } catch (error) {
-      console.error("Error uploading product:", error);
-      setError("Failed to upload product");
-    } finally {
-      setLoading(false);
+      console.error("Error updating product:", error);
+      toast.error("Failed to update product.");
     }
   };
 
+  if (!product) return <div>Loading...</div>;
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Upload Product</h1>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div className="mb-4">
-          <label className="block text-gray-700">Product Name</label>
+      <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block mb-2 font-medium">Name:</label>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Brand</label>
-          <select
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
-          >
-            <option value="">Select a brand</option>
-            {brands.map((b) => (
-              <option key={b._id} value={b._id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+        <div>
+          <label className="block mb-2 font-medium">Brand:</label>
+          <input
+            type="text"
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Category</label>
-          <select
+        <div>
+          <label className="block mb-2 font-medium">Category:</label>
+          <input
+            type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
-          >
-            <option value="">Select a category</option>
-            {categories.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            className="w-full p-2 border border-gray-300 rounded"
+          />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Description</label>
+        <div>
+          <label className="block mb-2 font-medium">Description:</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Price</label>
+        <div>
+          <label className="block mb-2 font-medium">Price:</label>
           <input
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Quantity</label>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
-          />
+
+        <div>
+          <label className="block mb-2 font-medium">Existing Images:</label>
+          <div className="flex space-x-2">
+            {productImages.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt="Product"
+                className="w-16 h-16 object-cover"
+              />
+            ))}
+          </div>
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Count In Stock</label>
-          <input
-            type="number"
-            value={countInStock}
-            onChange={(e) => setCountInStock(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Product Images</label>
+        <div>
+          <label className="block mb-2 font-medium">New Images:</label>
           <input
             type="file"
             multiple
             onChange={handleImageChange}
-            className="border border-gray-300 p-2 w-full"
+            className="w-full p-2 border border-gray-300 rounded"
           />
-          {images.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-4">
-              {Array.from(images).map((image, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={URL.createObjectURL(image)}
-                    alt="Preview"
-                    className="w-32 h-32 object-cover border border-gray-300 rounded"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"
-                  >
-                    x
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="flex space-x-2 mt-2">
+            {Array.from(newImages).map((file, index) => (
+              <img
+                key={index}
+                src={URL.createObjectURL(file)}
+                alt="New Product"
+                className="w-16 h-16 object-cover"
+              />
+            ))}
+          </div>
         </div>
         <button
           type="submit"
-          className={`bg-blue-500 text-white px-4 py-2 rounded ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={loading}
+          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
         >
-          {loading ? "Uploading..." : "Upload Product"}
+          Update Product
         </button>
       </form>
-      <BrandsManager
-        onBrandsChange={(updatedBrands) => setBrands(updatedBrands)}
-      />
-      <CategoriesManager
-        onCategoriesChange={(updatedCategories) =>
-          setCategories(updatedCategories)
-        }
-      />
     </div>
   );
 };
 
-export default UploadProduct;
+export default EditProduct;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -14,8 +15,7 @@ const EditProduct = () => {
   const [sellingPrice, setSellingPrice] = useState("");
   const [productImages, setProductImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -37,29 +37,30 @@ const EditProduct = () => {
       }
     };
 
-    const fetchCategoriesAndBrands = async () => {
-      try {
-        const [categoriesResponse, brandsResponse] = await Promise.all([
-          axios.get("http://localhost:5000/api/categories/get"),
-          axios.get("http://localhost:5000/api/brands"),
-        ]);
-        setCategories(categoriesResponse.data);
-        setBrands(brandsResponse.data);
-      } catch (error) {
-        console.error("Error fetching categories or brands:", error);
-      }
-    };
-
     fetchProduct();
-    fetchCategoriesAndBrands();
   }, [id]);
 
   const handleImageChange = (event) => {
-    setNewImages(event.target.files);
+    const newFiles = Array.from(event.target.files);
+    const existingFiles = newImages.map((file) => file.name);
+
+    const duplicates = newFiles.filter((file) =>
+      existingFiles.includes(file.name)
+    );
+
+    if (duplicates.length > 0) {
+      toast.error("Some images are duplicates and won't be added.");
+    } else {
+      const uniqueFiles = newFiles.filter(
+        (file) => !existingFiles.includes(file.name)
+      );
+      setNewImages([...newImages, ...uniqueFiles]);
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsUpdating(true);
     const formData = new FormData();
     formData.append("productName", productName);
     formData.append("brandName", brandName);
@@ -67,6 +68,11 @@ const EditProduct = () => {
     formData.append("description", description);
     formData.append("price", price);
     formData.append("sellingPrice", sellingPrice);
+
+    for (let i = 0; i < productImages.length; i++) {
+      formData.append("existingImages", productImages[i]);
+    }
+
     for (let i = 0; i < newImages.length; i++) {
       formData.append("newImages", newImages[i]);
     }
@@ -79,129 +85,112 @@ const EditProduct = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      navigate(`/products`);
+      toast.success("Product updated successfully!");
+      navigate(`/products-list`);
     } catch (error) {
       console.error("Error updating product:", error);
+      toast.error("Failed to update product.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   if (!product) return <div>Loading...</div>;
 
   return (
-    <div className="p-6">
+    <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Name:
-          </label>
+          <label className="block mb-2 font-medium">Name:</label>
           <input
             type="text"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Brand:
-          </label>
-          <select
+          <label className="block mb-2 font-medium">Brand:</label>
+          <input
+            type="text"
             value={brandName}
             onChange={(e) => setBrandName(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <option value="">Select Brand</option>
-            {brands.map((brand) => (
-              <option key={brand._id} value={brand.name}>
-                {brand.name}
-              </option>
-            ))}
-          </select>
+            className="w-full p-2 border border-gray-300 rounded"
+          />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Category:
-          </label>
-          <select
+          <label className="block mb-2 font-medium">Category:</label>
+          <input
+            type="text"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <option value="">Select Category</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            className="w-full p-2 border border-gray-300 rounded"
+          />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Description:
-          </label>
+          <label className="block mb-2 font-medium">Description:</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Price:
-          </label>
+          <label className="block mb-2 font-medium">Price:</label>
           <input
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full p-2 border border-gray-300 rounded"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Selling Price:
-          </label>
-          <input
-            type="number"
-            value={sellingPrice}
-            onChange={(e) => setSellingPrice(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Existing Images:
-          </label>
-          <div className="flex space-x-2 mt-2">
+          <label className="block mb-2 font-medium">Existing Images:</label>
+          <div className="flex space-x-2">
             {productImages.map((image, index) => (
               <img
                 key={index}
                 src={image}
                 alt="Product"
-                className="w-24 h-24 object-cover border border-gray-200 rounded"
+                className="w-16 h-16 object-cover"
               />
             ))}
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            New Images:
-          </label>
+          <label className="block mb-2 font-medium">New Images:</label>
           <input
             type="file"
             multiple
             onChange={handleImageChange}
-            className="mt-1 block w-full text-sm text-gray-500"
+            className="w-full p-2 border border-gray-300 rounded"
           />
+          <div className="flex space-x-2 mt-2">
+            {Array.from(newImages).map((file, index) => (
+              <img
+                key={index}
+                src={URL.createObjectURL(file)}
+                alt="New Product"
+                className="w-16 h-16 object-cover"
+              />
+            ))}
+          </div>
         </div>
-        <div>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Update Product
-          </button>
-        </div>
+        <button
+          type="submit"
+          className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 ${
+            isUpdating ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={isUpdating}
+        >
+          {isUpdating ? "Updating..." : "Update Product"}
+        </button>
+        {isUpdating && (
+          <div className="flex justify-center mt-4">
+            <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-500"></div>
+          </div>
+        )}
       </form>
     </div>
   );

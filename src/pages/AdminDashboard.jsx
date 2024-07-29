@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../utils/logout"; // Adjust the path as necessary
 import UploadProduct from "../components/UploadProduct";
-import EditProduct from "../components/EditProduct";
+// import EditProduct from "../components/EditProduct";
 import ProductList from "../components/ProductList";
 
 const AdminDashboard = () => {
@@ -28,7 +28,7 @@ const AdminDashboard = () => {
         Logout
       </button>
       <ProductList />
-      <EditProduct />
+      {/* <EditProduct /> */}
     </div>
   );
 };

@@ -14,6 +14,8 @@ const EditProduct = () => {
   const [sellingPrice, setSellingPrice] = useState("");
   const [productImages, setProductImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -35,7 +37,21 @@ const EditProduct = () => {
       }
     };
 
+    const fetchCategoriesAndBrands = async () => {
+      try {
+        const [categoriesResponse, brandsResponse] = await Promise.all([
+          axios.get("http://localhost:5000/api/categories/get"),
+          axios.get("http://localhost:5000/api/brands"),
+        ]);
+        setCategories(categoriesResponse.data);
+        setBrands(brandsResponse.data);
+      } catch (error) {
+        console.error("Error fetching categories or brands:", error);
+      }
+    };
+
     fetchProduct();
+    fetchCategoriesAndBrands();
   }, [id]);
 
   const handleImageChange = (event) => {
@@ -90,23 +106,35 @@ const EditProduct = () => {
           <label className="block text-sm font-medium text-gray-700">
             Brand:
           </label>
-          <input
-            type="text"
+          <select
             value={brandName}
             onChange={(e) => setBrandName(e.target.value)}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
+          >
+            <option value="">Select Brand</option>
+            {brands.map((brand) => (
+              <option key={brand._id} value={brand.name}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
             Category:
           </label>
-          <input
-            type="text"
+          <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
+          >
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">

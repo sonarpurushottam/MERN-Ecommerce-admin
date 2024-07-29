@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import axios from "axios";
+
+import CategoriesManager from "./CategoriesManager";
+import BrandsManager from "./BrandsManager";
 
 const UploadProduct = () => {
   const [name, setName] = useState("");
@@ -10,30 +13,34 @@ const UploadProduct = () => {
   const [quantity, setQuantity] = useState("");
   const [countInStock, setCountInStock] = useState("");
   const [images, setImages] = useState([]);
-  const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchBrandsAndCategories = async () => {
+    const fetchCategoriesAndBrands = async () => {
       try {
-        const [brandResponse, categoryResponse] = await Promise.all([
-          axios.get("http://localhost:5000/api/brands/get"),
+        const [categoryResponse, brandResponse] = await Promise.all([
           axios.get("http://localhost:5000/api/categories/get"),
+          axios.get("http://localhost:5000/api/brands/get"),
         ]);
-        setBrands(brandResponse.data);
         setCategories(categoryResponse.data);
+        setBrands(brandResponse.data);
       } catch (err) {
-        console.error("Error fetching brands or categories:", err);
-        setError("Failed to load brands or categories");
+        console.error("Error fetching categories or brands:", err);
+        setError("Failed to load categories or brands");
       }
     };
-    fetchBrandsAndCategories();
+    fetchCategoriesAndBrands();
   }, []);
 
   const handleImageChange = (event) => {
-    setImages([...event.target.files]);
+    setImages([...images, ...event.target.files]);
+  };
+
+  const handleRemoveImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (event) => {
@@ -61,7 +68,7 @@ const UploadProduct = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // if you're using authentication
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -167,8 +174,27 @@ const UploadProduct = () => {
             multiple
             onChange={handleImageChange}
             className="border border-gray-300 p-2 w-full"
-            required
           />
+          {images.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-4">
+              {Array.from(images).map((image, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={URL.createObjectURL(image)}
+                    alt="Preview"
+                    className="w-32 h-32 object-cover border border-gray-300 rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full"
+                  >
+                    x
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <button
           type="submit"
@@ -180,6 +206,14 @@ const UploadProduct = () => {
           {loading ? "Uploading..." : "Upload Product"}
         </button>
       </form>
+      <BrandsManager
+        onBrandsChange={(updatedBrands) => setBrands(updatedBrands)}
+      />
+      <CategoriesManager
+        onCategoriesChange={(updatedCategories) =>
+          setCategories(updatedCategories)
+        }
+      />
     </div>
   );
 };

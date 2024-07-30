@@ -1,22 +1,42 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import Login from "./components/Login";
-import Home from "./pages/Home";
 import AdminDashboard from "./pages/AdminDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import EditProduct from "./components/EditProduct";
 import ProductList from "./components/ProductList";
+import UploadProduct from "./components/UploadProduct";
+import CategoriesManager from "./components/CategoriesManager";
+import BrandsManager from "./components/BrandsManager";
+import NextNavbar from "./components/header/NextNavbar";
 
 const App = () => {
   return (
     <Router>
+      <MainContent />
+    </Router>
+  );
+};
+
+const MainContent = () => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/";
+
+  return (
+    <>
+      {!isLoginPage && <NextNavbar />}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/products-list" element={<ProductList />} />
-
+        <Route path="/upload-product" element={<UploadProduct />} />
+        <Route path="/categories" element={<CategoriesManager />} />
+        <Route path="/brands" element={<BrandsManager />} />
         <Route path="/product/edit/:id" element={<EditProduct />} />
-
         <Route
           path="/admin-dashboard"
           element={
@@ -36,7 +56,7 @@ const App = () => {
           }
         />
       </Routes>
-    </Router>
+    </>
   );
 };
 

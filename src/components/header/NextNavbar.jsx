@@ -15,11 +15,15 @@ import {
 } from "@nextui-org/react";
 import { AcmeLogo } from "./AcmeLogo.jsx";
 import { SearchIcon } from "./SearchIcon.jsx";
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export default function NextNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const menuItems = [
     { name: "Home", path: "/admin-dashboard" },
@@ -37,6 +41,46 @@ export default function NextNavbar() {
     { name: "Log Out", path: "#" },
   ];
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const { data } = await axios.get(
+          "http://localhost:5000/api/users/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:5000/api/users/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      localStorage.removeItem("token"); // Remove token from localStorage
+      toast.success("Logged out successfully"); // Show success toast
+      navigate("/"); // Navigate to login page
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Failed to log out"); // Show error toast
+    }
+  };
+
   return (
     <Navbar shouldHideOnScroll isBordered onMenuOpenChange={setIsMenuOpen}>
       <NavbarContent justify="start">
@@ -49,7 +93,7 @@ export default function NextNavbar() {
           <p className="hidden sm:block font-bold text-inherit">ACME</p>
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-3">
-          {menuItems.slice(0,5).map((item) => (
+          {menuItems.slice(0, 5).map((item) => (
             <NavbarItem key={item.name}>
               <NavLink
                 to={item.path}
@@ -85,15 +129,20 @@ export default function NextNavbar() {
               as="button"
               className="transition-transform"
               color="secondary"
-              name="Jason Hughes"
+              name={user ? user.username : "User"}
               size="sm"
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+              src={
+                user?.profilePic ||
+                "https://i.pravatar.cc/150?u=a042581f4e29026704d"
+              }
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">
             <DropdownItem key="profile" className="h-14 gap-2">
               <p className="font-semibold">Signed in as</p>
-              <p className="font-semibold">zoey@example.com</p>
+              <p className="font-semibold">
+                {user ? user.email : "Loading..."}
+              </p>
             </DropdownItem>
             <DropdownItem key="settings">My Settings</DropdownItem>
             <DropdownItem key="team_settings">Team Settings</DropdownItem>
@@ -101,7 +150,7 @@ export default function NextNavbar() {
             <DropdownItem key="system">System</DropdownItem>
             <DropdownItem key="configurations">Configurations</DropdownItem>
             <DropdownItem key="help_and_feedback">Help & Feedback</DropdownItem>
-            <DropdownItem key="logout" color="danger">
+            <DropdownItem key="logout" color="danger" onClick={handleLogout}>
               Log Out
             </DropdownItem>
           </DropdownMenu>

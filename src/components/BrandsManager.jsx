@@ -5,8 +5,10 @@ import { toast } from "react-hot-toast";
 const BrandsManager = () => {
   const [brands, setBrands] = useState([]);
   const [newBrand, setNewBrand] = useState("");
+  const [newBrandImage, setNewBrandImage] = useState(null);
   const [editingBrandId, setEditingBrandId] = useState(null);
   const [editingBrandName, setEditingBrandName] = useState("");
+  const [editingBrandImage, setEditingBrandImage] = useState(null);
 
   useEffect(() => {
     fetchBrands();
@@ -24,18 +26,27 @@ const BrandsManager = () => {
 
   const handleAddBrand = async () => {
     if (!newBrand) return;
+
+    const formData = new FormData();
+    formData.append("name", newBrand);
+    if (newBrandImage) {
+      formData.append("brandImage", newBrandImage);
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/brands/create",
-        { name: newBrand },
+        formData,
         {
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
       setBrands([...brands, response.data]);
       setNewBrand("");
+      setNewBrandImage(null);
       toast.success("Brand added successfully");
     } catch (error) {
       console.error("Error adding brand:", error);
@@ -45,12 +56,20 @@ const BrandsManager = () => {
 
   const handleEditBrand = async () => {
     if (!editingBrandName) return;
+
+    const formData = new FormData();
+    formData.append("name", editingBrandName);
+    if (editingBrandImage) {
+      formData.append("brandImage", editingBrandImage);
+    }
+
     try {
       const response = await axios.put(
         `http://localhost:5000/api/brands/${editingBrandId}`,
-        { name: editingBrandName },
+        formData,
         {
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
@@ -62,6 +81,7 @@ const BrandsManager = () => {
       );
       setEditingBrandId(null);
       setEditingBrandName("");
+      setEditingBrandImage(null);
       toast.success("Brand updated successfully");
     } catch (error) {
       console.error("Error updating brand:", error);
@@ -95,6 +115,11 @@ const BrandsManager = () => {
           placeholder="New brand name"
           className="border border-gray-300 p-2 w-full"
         />
+        <input
+          type="file"
+          onChange={(e) => setNewBrandImage(e.target.files[0])}
+          className="mt-2"
+        />
         <button
           onClick={handleAddBrand}
           className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
@@ -104,14 +129,19 @@ const BrandsManager = () => {
       </div>
       <ul className="list-disc pl-5">
         {brands.map((brand) => (
-          <li key={brand._id} className="mb-2">
+          <li key={brand._id} className="mb-2 flex items-center">
             {editingBrandId === brand._id ? (
-              <div>
+              <div className="w-full">
                 <input
                   type="text"
                   value={editingBrandName}
                   onChange={(e) => setEditingBrandName(e.target.value)}
                   className="border border-gray-300 p-2 w-full"
+                />
+                <input
+                  type="file"
+                  onChange={(e) => setEditingBrandImage(e.target.files[0])}
+                  className="mt-2"
                 />
                 <button
                   onClick={handleEditBrand}
@@ -123,6 +153,7 @@ const BrandsManager = () => {
                   onClick={() => {
                     setEditingBrandId(null);
                     setEditingBrandName("");
+                    setEditingBrandImage(null);
                   }}
                   className="bg-red-500 text-white px-4 py-2 rounded mt-2"
                 >
@@ -130,13 +161,23 @@ const BrandsManager = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex justify-between">
-                <span>{brand.name}</span>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  {brand.image && (
+                    <img
+                      src={brand.image}
+                      alt={brand.name}
+                      className="w-16 h-16 object-cover rounded mr-4"
+                    />
+                  )}
+                  <span>{brand.name}</span>
+                </div>
                 <div>
                   <button
                     onClick={() => {
                       setEditingBrandId(brand._id);
                       setEditingBrandName(brand.name);
+                      setEditingBrandImage(null); // reset image
                     }}
                     className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
                   >

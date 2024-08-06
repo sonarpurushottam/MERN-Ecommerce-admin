@@ -5,8 +5,10 @@ import { toast } from "react-hot-toast";
 const CategoriesManager = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
+  const [selectedCategoryImage, setSelectedCategoryImage] = useState(null);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
+  const [editingCategoryImage, setEditingCategoryImage] = useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -26,18 +28,27 @@ const CategoriesManager = () => {
 
   const handleAddCategory = async () => {
     if (!newCategory) return;
+
+    const formData = new FormData();
+    formData.append("name", newCategory);
+    if (selectedCategoryImage) {
+      formData.append("categoryImage", selectedCategoryImage);
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/categories/create",
-        { name: newCategory },
+        formData,
         {
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
       setCategories([...categories, response.data]);
       setNewCategory("");
+      setSelectedCategoryImage(null);
       toast.success("Category added successfully");
     } catch (error) {
       console.error("Error adding category:", error);
@@ -47,12 +58,20 @@ const CategoriesManager = () => {
 
   const handleEditCategory = async () => {
     if (!editingCategoryName) return;
+
+    const formData = new FormData();
+    formData.append("name", editingCategoryName);
+    if (editingCategoryImage) {
+      formData.append("categoryImage", editingCategoryImage);
+    }
+
     try {
       const response = await axios.put(
         `http://localhost:5000/api/categories/${editingCategoryId}`,
-        { name: editingCategoryName },
+        formData,
         {
           headers: {
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
@@ -64,6 +83,7 @@ const CategoriesManager = () => {
       );
       setEditingCategoryId(null);
       setEditingCategoryName("");
+      setEditingCategoryImage(null);
       toast.success("Category updated successfully");
     } catch (error) {
       console.error("Error updating category:", error);
@@ -99,6 +119,11 @@ const CategoriesManager = () => {
           placeholder="New category name"
           className="border border-gray-300 p-2 w-full"
         />
+        <input
+          type="file"
+          onChange={(e) => setSelectedCategoryImage(e.target.files[0])}
+          className="mt-2"
+        />
         <button
           onClick={handleAddCategory}
           className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
@@ -108,14 +133,19 @@ const CategoriesManager = () => {
       </div>
       <ul className="list-disc pl-5">
         {categories.map((category) => (
-          <li key={category._id} className="mb-2">
+          <li key={category._id} className="mb-2 flex items-center">
             {editingCategoryId === category._id ? (
-              <div>
+              <div className="w-full">
                 <input
                   type="text"
                   value={editingCategoryName}
                   onChange={(e) => setEditingCategoryName(e.target.value)}
                   className="border border-gray-300 p-2 w-full"
+                />
+                <input
+                  type="file"
+                  onChange={(e) => setEditingCategoryImage(e.target.files[0])}
+                  className="mt-2"
                 />
                 <button
                   onClick={handleEditCategory}
@@ -127,6 +157,7 @@ const CategoriesManager = () => {
                   onClick={() => {
                     setEditingCategoryId(null);
                     setEditingCategoryName("");
+                    setEditingCategoryImage(null);
                   }}
                   className="bg-red-500 text-white px-4 py-2 rounded mt-2"
                 >
@@ -134,13 +165,23 @@ const CategoriesManager = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex justify-between">
-                <span>{category.name}</span>
+              <div className="flex justify-between w-full items-center">
+                <div className="flex items-center">
+                  {category.image && (
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="w-16 h-16 object-cover rounded mr-4"
+                    />
+                  )}
+                  <span>{category.name}</span>
+                </div>
                 <div>
                   <button
                     onClick={() => {
                       setEditingCategoryId(category._id);
                       setEditingCategoryName(category.name);
+                      setEditingCategoryImage(null); // reset image
                     }}
                     className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
                   >

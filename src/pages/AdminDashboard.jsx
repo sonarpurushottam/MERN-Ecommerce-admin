@@ -1,6 +1,7 @@
-import ProductList from "../components/ProductList";
+import OrderAdminPanel from "../components/admin/OrderAdminPanel";
 
 import CreateBrand from "../components/CreateBrand";
+import UsersList from "../components/UsersList";
 
 const AdminDashboard = () => {
   console.log(localStorage.getItem("role")); // Should log the role if stored correctly
@@ -9,7 +10,8 @@ const AdminDashboard = () => {
   return (
     <div>
       <h1>Admin Dashboard</h1>
-      <ProductList />
+      <UsersList />
+      <OrderAdminPanel />
       <CreateBrand />
     </div>
   );

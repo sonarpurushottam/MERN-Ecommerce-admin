@@ -11,14 +11,11 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Validate email or mobile number
   const validateEmailOrMobile = (input) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || /^[0-9]{10}$/.test(input);
 
-  // Validate password
   const validatePassword = (password) => password.length >= 6;
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -36,41 +33,35 @@ const Login = () => {
     }
 
     try {
-      // POST request to login endpoint
       const response = await axios.post(
         "http://localhost:5000/api/users/login",
         { emailOrMobile, password },
         { withCredentials: true }
       );
 
-      // Assuming response contains user info including role and token
       const { token, role } = response.data;
 
-      // Check if the role is admin or superadmin
       if (role === "admin" || role === "superadmin") {
-        // Store token and role in localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
 
-        // Redirect based on role
         if (role === "superadmin") {
           navigate("/super-admin");
-        } else if (role === "admin") {
+        } else {
           navigate("/admin-dashboard");
         }
 
         toast.success("Login successful!");
       } else {
-        // If role is neither admin nor superadmin, show unauthorized message
         toast.error("Unauthorized");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
+      toast.error(
+        error.response?.data?.message || "An error occurred during login"
+      );
     } finally {
       setLoading(false);
     }
-    console.log(localStorage.getItem("role")); // Should log the role if stored correctly
-    console.log(localStorage.getItem("token"));
   };
 
   return (
@@ -109,6 +100,7 @@ const Login = () => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
+                aria-label="Toggle password visibility"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -124,6 +116,15 @@ const Login = () => {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
+          </div>
+          {/* Optional Forgot Password */}
+          <div className="text-sm text-center mt-4">
+            <a
+              href="/forgot-password"
+              className="text-blue-500 hover:underline"
+            >
+              Forgot Password?
+            </a>
           </div>
         </form>
       </div>

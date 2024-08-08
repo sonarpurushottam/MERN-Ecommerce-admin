@@ -14,6 +14,9 @@ import UploadProduct from "./components/UploadProduct";
 import CategoriesManager from "./components/CategoriesManager";
 import BrandsManager from "./components/BrandsManager";
 import NextNavbar from "./components/header/NextNavbar";
+import OrderAdminPanel from "./components/admin/OrderAdminPanel";
+import OrderList from "./components/admin/OrderList";
+import OrderDetails from "./components/admin/OrderDetails";
 
 const App = () => {
   return (
@@ -37,6 +40,33 @@ const MainContent = () => {
         <Route path="/categories" element={<CategoriesManager />} />
         <Route path="/brands" element={<BrandsManager />} />
         <Route path="/product/edit/:id" element={<EditProduct />} />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute
+              element={<OrderAdminPanel />}
+              roles={["admin", "superadmin"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <PrivateRoute
+              element={<OrderList />}
+              roles={["admin", "superadmin"]}
+            />
+          }
+        />
+        <Route
+          path="/admin/orders/:id"
+          element={
+            <PrivateRoute
+              element={<OrderDetails />}
+              roles={["admin", "superadmin"]}
+            />
+          }
+        />
         <Route
           path="/admin-dashboard"
           element={

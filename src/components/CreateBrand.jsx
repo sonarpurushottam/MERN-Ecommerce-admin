@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import BrandsManager from "./BrandsManager";
 
 const CreateBrand = () => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -27,7 +29,9 @@ const CreateBrand = () => {
   }, []);
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
@@ -42,15 +46,15 @@ const CreateBrand = () => {
     }
 
     try {
-      const token = localStorage.getItem("token"); // Adjust as necessary
+      const token = localStorage.getItem("token");
       await axios.post("http://localhost:5000/api/brands/create", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, // Add token here
+          Authorization: `Bearer ${token}`,
         },
       });
       toast.success("Brand created successfully");
-      navigate("/brands"); // Redirect to the brands page or another page
+      navigate("/brands");
     } catch (error) {
       toast.error("Error creating brand");
       console.error("Error creating brand", error);
@@ -117,6 +121,13 @@ const CreateBrand = () => {
             onChange={handleImageChange}
             className="mt-1 block w-full text-sm text-gray-500 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
           />
+          {imagePreview && (
+            <img
+              src={imagePreview}
+              alt="Brand Preview"
+              className="mt-2 w-32 h-32 object-cover rounded"
+            />
+          )}
         </div>
 
         <button
@@ -129,6 +140,7 @@ const CreateBrand = () => {
           {loading ? "Creating..." : "Create Brand"}
         </button>
       </form>
+      <BrandsManager />
     </div>
   );
 };

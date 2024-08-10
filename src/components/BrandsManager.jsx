@@ -1,32 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import CategoryAndBrandManager from "./CategoryAndBrandManager";
 
 const BrandsManager = () => {
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [brands, setBrands] = useState([]);
-  const [newBrand, setNewBrand] = useState("");
-  const [newBrandImage, setNewBrandImage] = useState(null);
   const [editingBrandId, setEditingBrandId] = useState(null);
   const [editingBrandName, setEditingBrandName] = useState("");
   const [editingBrandImage, setEditingBrandImage] = useState(null);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/categories"
-        );
-        setCategories(response.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+  const [currentBrandImage, setCurrentBrandImage] = useState(null);
 
   useEffect(() => {
     const fetchBrands = async () => {
@@ -43,43 +24,6 @@ const BrandsManager = () => {
 
     fetchBrands();
   }, []);
-
-  const handleAddBrand = async () => {
-    if (!newBrand || !selectedCategory) return;
-  
-    const formData = new FormData();
-    formData.append("name", newBrand);
-    formData.append("category", selectedCategory); // Ensure this is included
-    if (newBrandImage) {
-      formData.append("brandImage", newBrandImage);
-    }
-  
-    // Log FormData contents
-    for (let pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`);
-    }
-  
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/brands/create",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setBrands([...brands, response.data]);
-      setNewBrand("");
-      setNewBrandImage(null);
-      setSelectedCategory(""); // Reset category selection
-      toast.success("Brand added successfully");
-    } catch (error) {
-      console.error("Error adding brand:", error);
-      toast.error("Failed to add brand");
-    }
-  };
 
   const handleEditBrand = async () => {
     if (!editingBrandName) return;
@@ -109,6 +53,7 @@ const BrandsManager = () => {
       setEditingBrandId(null);
       setEditingBrandName("");
       setEditingBrandImage(null);
+      setCurrentBrandImage(null);
       toast.success("Brand updated successfully");
     } catch (error) {
       console.error("Error updating brand:", error);
@@ -131,41 +76,16 @@ const BrandsManager = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setEditingBrandImage(file);
+    setCurrentBrandImage(URL.createObjectURL(file)); // Display the selected image preview
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-xl font-bold mb-4">Manage Brands</h2>
-      <div className="mb-4">
-        <input
-          type="text"
-          value={newBrand}
-          onChange={(e) => setNewBrand(e.target.value)}
-          placeholder="New brand name"
-          className="border border-gray-300 p-2 w-full"
-        />
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="border border-gray-300 p-2 w-full mt-2"
-        >
-          <option value="">Select Category</option>
-          {categories.map((cat) => (
-            <option key={cat._id} value={cat._id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-        <input
-          type="file"
-          onChange={(e) => setNewBrandImage(e.target.files[0])}
-          className="mt-2"
-        />
-        <button
-          onClick={handleAddBrand}
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
-        >
-          Add Brand
-        </button>
-      </div>
+
       <ul className="list-disc pl-5">
         {brands.map((brand) => (
           <li key={brand._id} className="mb-2 flex items-center">
@@ -177,10 +97,24 @@ const BrandsManager = () => {
                   onChange={(e) => setEditingBrandName(e.target.value)}
                   className="border border-gray-300 p-2 w-full"
                 />
+                {currentBrandImage ? (
+                  <img
+                    src={currentBrandImage}
+                    alt="Current brand"
+                    className="w-16 h-16 object-cover rounded mt-2"
+                  />
+                ) : brand.image ? (
+                  <img
+                    src={brand.image}
+                    alt={brand.name}
+                    className="w-16 h-16 object-cover rounded mt-2"
+                  />
+                ) : null}
                 <input
                   type="file"
-                  onChange={(e) => setEditingBrandImage(e.target.files[0])}
+                  onChange={handleImageChange}
                   className="mt-2"
+                  accept="image/*"
                 />
                 <button
                   onClick={handleEditBrand}
@@ -193,6 +127,7 @@ const BrandsManager = () => {
                     setEditingBrandId(null);
                     setEditingBrandName("");
                     setEditingBrandImage(null);
+                    setCurrentBrandImage(null);
                   }}
                   className="bg-red-500 text-white px-4 py-2 rounded mt-2"
                 >
@@ -217,6 +152,7 @@ const BrandsManager = () => {
                       setEditingBrandId(brand._id);
                       setEditingBrandName(brand.name);
                       setEditingBrandImage(null); // reset image
+                      setCurrentBrandImage(brand.image); // Show current image
                     }}
                     className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
                   >
@@ -234,7 +170,6 @@ const BrandsManager = () => {
           </li>
         ))}
       </ul>
-      <CategoryAndBrandManager />
     </div>
   );
 };

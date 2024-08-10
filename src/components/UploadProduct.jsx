@@ -1,8 +1,7 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-
 import CategoriesManager from "./CategoriesManager";
-import BrandsManager from "./BrandsManager";
+import CreateBrand from "./CreateBrand";
 
 const UploadProduct = () => {
   const [name, setName] = useState("");
@@ -82,8 +81,14 @@ const UploadProduct = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">
       <h1 className="text-2xl font-bold mb-4">Upload Product</h1>
+      <CategoriesManager
+        onCategoriesChange={(updatedCategories) =>
+          setCategories(updatedCategories)
+        }
+      />
+      <CreateBrand />
       {error && <div className="text-red-500 mb-4">{error}</div>}
       <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="mb-4">
@@ -95,22 +100,6 @@ const UploadProduct = () => {
             className="border border-gray-300 p-2 w-full"
             required
           />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Brand</label>
-          <select
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            className="border border-gray-300 p-2 w-full"
-            required
-          >
-            <option value="">Select a brand</option>
-            {brands.map((b) => (
-              <option key={b._id} value={b._id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Category</label>
@@ -128,6 +117,23 @@ const UploadProduct = () => {
             ))}
           </select>
         </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Brand</label>
+          <select
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            className="border border-gray-300 p-2 w-full"
+            required
+          >
+            <option value="">Select a brand</option>
+            {brands.map((b) => (
+              <option key={b._id} value={b._id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="mb-4">
           <label className="block text-gray-700">Description</label>
           <textarea
@@ -206,14 +212,9 @@ const UploadProduct = () => {
           {loading ? "Uploading..." : "Upload Product"}
         </button>
       </form>
-      <BrandsManager
+      {/* <BrandsManager
         onBrandsChange={(updatedBrands) => setBrands(updatedBrands)}
-      />
-      <CategoriesManager
-        onCategoriesChange={(updatedCategories) =>
-          setCategories(updatedCategories)
-        }
-      />
+      /> */}
     </div>
   );
 };

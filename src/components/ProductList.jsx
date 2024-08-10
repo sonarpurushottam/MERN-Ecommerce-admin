@@ -1,54 +1,30 @@
-import { useState, useEffect } from "react";
+// src/components/ProductList.js
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { useState } from "react";
 import { toast } from "react-hot-toast";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import { useProducts } from "../hooks/useProducts";
 
 const ProductList = () => {
-  const [products, setProducts] = useState([]);
+  const { products, isLoading, isError, deleteProduct } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/products/all-products"
-        );
-        console.log(response.data);
-        setProducts(response.data); // Adjust based on your API response structure
-      } catch (error) {
-        toast.error("Error fetching products");
-      }
-    };
-    fetchProducts();
-  }, []);
-
   const handleDelete = async () => {
-    const token = localStorage.getItem("token"); // Get the token from localStorage
-    try {
-      await axios.delete(
-        `http://localhost:5000/api/products/${selectedProduct._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the request headers
-          },
-        }
-      );
-      setProducts(
-        products.filter((product) => product._id !== selectedProduct._id)
-      );
-      toast.success("Product deleted successfully");
-    } catch (error) {
-      toast.error("Error deleting product");
+    if (selectedProduct) {
+      await deleteProduct(selectedProduct._id);
+      setSelectedProduct(null);
+      setShowDeleteModal(false);
     }
-    setShowDeleteModal(false);
   };
 
   const openDeleteModal = (product) => {
     setSelectedProduct(product);
     setShowDeleteModal(true);
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading products.</div>;
 
   return (
     <div className="p-6">

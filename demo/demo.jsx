@@ -1,188 +1,163 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 
-const EditProduct = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [productName, setProductName] = useState("");
-  const [brandName, setBrandName] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [sellingPrice, setSellingPrice] = useState("");
-  const [productImages, setProductImages] = useState([]);
-  const [newImages, setNewImages] = useState([]);
+
+const BrandsManager = () => {
+
+
+  const [brands, setBrands] = useState([]);
+ 
+
+  const [editingBrandId, setEditingBrandId] = useState(null);
+  const [editingBrandName, setEditingBrandName] = useState("");
+  const [editingBrandImage, setEditingBrandImage] = useState(null);
+
+ 
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchBrands = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/products/${id}`
+          "http://localhost:5000/api/brands/get"
         );
-        const productData = response.data.product;
-        setProduct(productData);
-        setProductName(productData.name);
-        setBrandName(productData.brandName);
-        setCategory(productData.category);
-        setDescription(productData.description);
-        setPrice(productData.price);
-        setSellingPrice(productData.sellingPrice);
-        setProductImages(productData.productImage);
+        setBrands(response.data);
       } catch (error) {
-        console.error("Error fetching product:", error);
+        console.error("Error fetching brands:", error);
+        toast.error("Failed to load brands");
       }
     };
 
-    fetchProduct();
-  }, [id]);
+    fetchBrands();
+  }, []);
 
-  const handleImageChange = (event) => {
-    const newFiles = Array.from(event.target.files);
-    const existingFiles = newImages.map((file) => file.name);
+ 
 
-    const duplicates = newFiles.filter((file) =>
-      existingFiles.includes(file.name)
-    );
+  const handleEditBrand = async () => {
+    if (!editingBrandName) return;
 
-    if (duplicates.length > 0) {
-      toast.error("Some images are duplicates and won't be added.");
-    } else {
-      const uniqueFiles = newFiles.filter(
-        (file) => !existingFiles.includes(file.name)
-      );
-      setNewImages([...newImages, ...uniqueFiles]);
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
     const formData = new FormData();
-    formData.append("productName", productName);
-    formData.append("brandName", brandName);
-    formData.append("category", category);
-    formData.append("description", description);
-    formData.append("price", price);
-    formData.append("sellingPrice", sellingPrice);
-
-    for (let i = 0; i < productImages.length; i++) {
-      formData.append("existingImages", productImages[i]);
-    }
-
-    for (let i = 0; i < newImages.length; i++) {
-      formData.append("newImages", newImages[i]);
+    formData.append("name", editingBrandName);
+    if (editingBrandImage) {
+      formData.append("brandImage", editingBrandImage);
     }
 
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5000/api/products/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      toast.success("Product updated successfully!");
-      navigate(`/products-list`);
+      const response = await axios.put(
+        `http://localhost:5000/api/brands/${editingBrandId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setBrands(
+        brands.map((brand) =>
+          brand._id === editingBrandId ? response.data : brand
+        )
+      );
+      setEditingBrandId(null);
+      setEditingBrandName("");
+      setEditingBrandImage(null);
+      toast.success("Brand updated successfully");
     } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error("Failed to update product.");
+      console.error("Error updating brand:", error);
+      toast.error("Failed to update brand");
     }
   };
 
-  if (!product) return <div>Loading...</div>;
+  const handleDeleteBrand = async (brandId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/brands/${brandId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setBrands(brands.filter((brand) => brand._id !== brandId));
+      toast.success("Brand deleted successfully");
+    } catch (error) {
+      console.error("Error deleting brand:", error);
+      toast.error("Failed to delete brand");
+    }
+  };
 
   return (
     <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block mb-2 font-medium">Name:</label>
-          <input
-            type="text"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div>
-          <label className="block mb-2 font-medium">Brand:</label>
-          <input
-            type="text"
-            value={brandName}
-            onChange={(e) => setBrandName(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div>
-          <label className="block mb-2 font-medium">Category:</label>
-          <input
-            type="text"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div>
-          <label className="block mb-2 font-medium">Description:</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-        <div>
-          <label className="block mb-2 font-medium">Price:</label>
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-2 font-medium">Existing Images:</label>
-          <div className="flex space-x-2">
-            {productImages.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt="Product"
-                className="w-16 h-16 object-cover"
-              />
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className="block mb-2 font-medium">New Images:</label>
-          <input
-            type="file"
-            multiple
-            onChange={handleImageChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-          <div className="flex space-x-2 mt-2">
-            {Array.from(newImages).map((file, index) => (
-              <img
-                key={index}
-                src={URL.createObjectURL(file)}
-                alt="New Product"
-                className="w-16 h-16 object-cover"
-              />
-            ))}
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-        >
-          Update Product
-        </button>
-      </form>
+      <h2 className="text-xl font-bold mb-4">Manage Brands</h2>
+     
+      <ul className="list-disc pl-5">
+        {brands.map((brand) => (
+          <li key={brand._id} className="mb-2 flex items-center">
+            {editingBrandId === brand._id ? (
+              <div className="w-full">
+                <input
+                  type="text"
+                  value={editingBrandName}
+                  onChange={(e) => setEditingBrandName(e.target.value)}
+                  className="border border-gray-300 p-2 w-full"
+                />
+                <input
+                  type="file"
+                  onChange={(e) => setEditingBrandImage(e.target.files[0])}
+                  className="mt-2"
+                />
+                <button
+                  onClick={handleEditBrand}
+                  className="bg-green-500 text-white px-4 py-2 rounded mt-2 mr-2"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingBrandId(null);
+                    setEditingBrandName("");
+                    setEditingBrandImage(null);
+                  }}
+                  className="bg-red-500 text-white px-4 py-2 rounded mt-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  {brand.image && (
+                    <img
+                      src={brand.image}
+                      alt={brand.name}
+                      className="w-16 h-16 object-cover rounded mr-4"
+                    />
+                  )}
+                  <span>{brand.name}</span>
+                </div>
+                <div>
+                  <button
+                    onClick={() => {
+                      setEditingBrandId(brand._id);
+                      setEditingBrandName(brand.name);
+                      setEditingBrandImage(null); // reset image
+                    }}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBrand(brand._id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+      {/* <CategoryAndBrandManager /> */}
     </div>
   );
 };
 
-export default EditProduct;
+export default BrandsManager;

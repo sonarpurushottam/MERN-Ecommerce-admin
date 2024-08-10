@@ -31,7 +31,7 @@ export default function NextNavbar() {
     { name: "Add New Product", path: "/upload-product" },
     { name: "Categories", path: "/categories" },
     { name: "Brands", path: "/brands" },
-    { name: "System", path: "#" },
+    { name: "Shubham", path: "/home" },
     { name: "Deployments", path: "#" },
     { name: "My Settings", path: "#" },
     { name: "Team Settings", path: "#" },
@@ -93,7 +93,7 @@ export default function NextNavbar() {
           <p className="hidden sm:block font-bold text-inherit">ACME</p>
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-3">
-          {menuItems.slice(0, 5).map((item) => (
+          {menuItems.slice(0, 9).map((item) => (
             <NavbarItem key={item.name}>
               <NavLink
                 to={item.path}

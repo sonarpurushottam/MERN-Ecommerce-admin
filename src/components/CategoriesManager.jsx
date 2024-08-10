@@ -6,9 +6,13 @@ const CategoriesManager = () => {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
   const [selectedCategoryImage, setSelectedCategoryImage] = useState(null);
+  const [selectedCategoryImagePreview, setSelectedCategoryImagePreview] =
+    useState(null);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
   const [editingCategoryImage, setEditingCategoryImage] = useState(null);
+  const [editingCategoryImagePreview, setEditingCategoryImagePreview] =
+    useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -49,6 +53,7 @@ const CategoriesManager = () => {
       setCategories([...categories, response.data]);
       setNewCategory("");
       setSelectedCategoryImage(null);
+      setSelectedCategoryImagePreview(null);
       toast.success("Category added successfully");
     } catch (error) {
       console.error("Error adding category:", error);
@@ -84,6 +89,7 @@ const CategoriesManager = () => {
       setEditingCategoryId(null);
       setEditingCategoryName("");
       setEditingCategoryImage(null);
+      setEditingCategoryImagePreview(null);
       toast.success("Category updated successfully");
     } catch (error) {
       console.error("Error updating category:", error);
@@ -108,8 +114,21 @@ const CategoriesManager = () => {
     }
   };
 
+  const handleImageChange = (e, isEditing = false) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (isEditing) {
+        setEditingCategoryImage(file);
+        setEditingCategoryImagePreview(URL.createObjectURL(file));
+      } else {
+        setSelectedCategoryImage(file);
+        setSelectedCategoryImagePreview(URL.createObjectURL(file));
+      }
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">
       <h2 className="text-xl font-bold mb-4">Manage Categories</h2>
       <div className="mb-4">
         <input
@@ -121,9 +140,16 @@ const CategoriesManager = () => {
         />
         <input
           type="file"
-          onChange={(e) => setSelectedCategoryImage(e.target.files[0])}
+          onChange={(e) => handleImageChange(e)}
           className="mt-2"
         />
+        {selectedCategoryImagePreview && (
+          <img
+            src={selectedCategoryImagePreview}
+            alt="Selected"
+            className="w-16 h-16 object-cover rounded mt-2"
+          />
+        )}
         <button
           onClick={handleAddCategory}
           className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
@@ -144,9 +170,16 @@ const CategoriesManager = () => {
                 />
                 <input
                   type="file"
-                  onChange={(e) => setEditingCategoryImage(e.target.files[0])}
+                  onChange={(e) => handleImageChange(e, true)}
                   className="mt-2"
                 />
+                {editingCategoryImagePreview && (
+                  <img
+                    src={editingCategoryImagePreview}
+                    alt="Editing Selected"
+                    className="w-16 h-16 object-cover rounded mt-2"
+                  />
+                )}
                 <button
                   onClick={handleEditCategory}
                   className="bg-green-500 text-white px-4 py-2 rounded mt-2 mr-2"
@@ -158,6 +191,7 @@ const CategoriesManager = () => {
                     setEditingCategoryId(null);
                     setEditingCategoryName("");
                     setEditingCategoryImage(null);
+                    setEditingCategoryImagePreview(null);
                   }}
                   className="bg-red-500 text-white px-4 py-2 rounded mt-2"
                 >
@@ -182,6 +216,7 @@ const CategoriesManager = () => {
                       setEditingCategoryId(category._id);
                       setEditingCategoryName(category.name);
                       setEditingCategoryImage(null); // reset image
+                      setEditingCategoryImagePreview(null); // reset preview
                     }}
                     className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
                   >

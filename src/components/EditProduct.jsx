@@ -1,12 +1,27 @@
+// src/components/EditProduct.js
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProductById } from "../api/products";
+import { useProducts } from "../hooks/useProducts";
 
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
+  const { updateProduct, isUpdating } = useProducts();
+
+  // Fetch the product data using useQuery with object syntax
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => fetchProductById(id),
+    enabled: !!id, // Fetch only if id is available
+  });
+
   const [productName, setProductName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [category, setCategory] = useState("");
@@ -15,30 +30,18 @@ const EditProduct = () => {
   const [sellingPrice, setSellingPrice] = useState("");
   const [productImages, setProductImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:5000/api/products/${id}`
-        );
-        const productData = response.data.product;
-        setProduct(productData);
-        setProductName(productData.productName);
-        setBrandName(productData.brandName);
-        setCategory(productData.category);
-        setDescription(productData.description);
-        setPrice(productData.price);
-        setSellingPrice(productData.sellingPrice);
-        setProductImages(productData.productImage);
-      } catch (error) {
-        console.error("Error fetching product:", error);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
+    if (product) {
+      setProductName(product.name || "");
+      setBrandName(product.brandName || "");
+      setCategory(product.category || "");
+      setDescription(product.description || "");
+      setPrice(product.price || "");
+      setSellingPrice(product.sellingPrice || "");
+      setProductImages(product.productImage || []);
+    }
+  }, [product]);
 
   const handleImageChange = (event) => {
     const newFiles = Array.from(event.target.files);
@@ -58,44 +61,47 @@ const EditProduct = () => {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
-    setIsUpdating(true);
     const formData = new FormData();
-    formData.append("productName", productName);
+    formData.append("name", productName);
     formData.append("brandName", brandName);
     formData.append("category", category);
     formData.append("description", description);
     formData.append("price", price);
     formData.append("sellingPrice", sellingPrice);
 
-    for (let i = 0; i < productImages.length; i++) {
-      formData.append("existingImages", productImages[i]);
+    // Add existing images
+    productImages.forEach((image) => {
+      formData.append("existingImages", image);
+    });
+
+    // Add new images
+    newImages.forEach((image) => {
+      formData.append("newImages", image);
+    });
+
+    // Debugging: Log FormData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
     }
 
-    for (let i = 0; i < newImages.length; i++) {
-      formData.append("newImages", newImages[i]);
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5000/api/products/${id}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+    updateProduct(
+      { id, formData },
+      {
+        onSuccess: () => {
+          toast.success("Product updated successfully!");
+          navigate("/products-list");
         },
-      });
-      toast.success("Product updated successfully!");
-      navigate(`/products-list`);
-    } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error("Failed to update product.");
-    } finally {
-      setIsUpdating(false);
-    }
+        onError: () => {
+          toast.error("Failed to update product.");
+        },
+      }
+    );
   };
 
-  if (!product) return <div>Loading...</div>;
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading product.</div>;
 
   return (
     <div className="container mx-auto p-4">
@@ -105,7 +111,7 @@ const EditProduct = () => {
           <label className="block mb-2 font-medium">Name:</label>
           <input
             type="text"
-            value={productName}
+            value={productName || ""}
             onChange={(e) => setProductName(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
@@ -114,7 +120,7 @@ const EditProduct = () => {
           <label className="block mb-2 font-medium">Brand:</label>
           <input
             type="text"
-            value={brandName}
+            value={brandName || ""}
             onChange={(e) => setBrandName(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
@@ -123,7 +129,7 @@ const EditProduct = () => {
           <label className="block mb-2 font-medium">Category:</label>
           <input
             type="text"
-            value={category}
+            value={category || ""}
             onChange={(e) => setCategory(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
@@ -131,7 +137,7 @@ const EditProduct = () => {
         <div>
           <label className="block mb-2 font-medium">Description:</label>
           <textarea
-            value={description}
+            value={description || ""}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />
@@ -140,7 +146,7 @@ const EditProduct = () => {
           <label className="block mb-2 font-medium">Price:</label>
           <input
             type="number"
-            value={price}
+            value={price || ""}
             onChange={(e) => setPrice(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
           />

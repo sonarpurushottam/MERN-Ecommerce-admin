@@ -31,7 +31,7 @@ export default function NextNavbar() {
     { name: "Add New Product", path: "/upload-product" },
     { name: "Categories", path: "/categories" },
     { name: "Brands", path: "/brands" },
-    { name: "Shubham", path: "/home" },
+    { name: "Shubham", path: "/shubham" },
     { name: "Users List", path: "/users-list" },
     { name: "My Settings", path: "#" },
     { name: "Team Settings", path: "#" },

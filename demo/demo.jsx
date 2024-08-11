@@ -1,163 +1,79 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-hot-toast";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { FaHome, FaUser, FaBox, FaBars, FaTimes } from "react-icons/fa";
 
+const Sidebar = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
-const BrandsManager = () => {
-
-
-  const [brands, setBrands] = useState([]);
- 
-
-  const [editingBrandId, setEditingBrandId] = useState(null);
-  const [editingBrandName, setEditingBrandName] = useState("");
-  const [editingBrandImage, setEditingBrandImage] = useState(null);
-
- 
-
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/brands/get"
-        );
-        setBrands(response.data);
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-        toast.error("Failed to load brands");
-      }
-    };
-
-    fetchBrands();
-  }, []);
-
- 
-
-  const handleEditBrand = async () => {
-    if (!editingBrandName) return;
-
-    const formData = new FormData();
-    formData.append("name", editingBrandName);
-    if (editingBrandImage) {
-      formData.append("brandImage", editingBrandImage);
-    }
-
-    try {
-      const response = await axios.put(
-        `http://localhost:5000/api/brands/${editingBrandId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setBrands(
-        brands.map((brand) =>
-          brand._id === editingBrandId ? response.data : brand
-        )
-      );
-      setEditingBrandId(null);
-      setEditingBrandName("");
-      setEditingBrandImage(null);
-      toast.success("Brand updated successfully");
-    } catch (error) {
-      console.error("Error updating brand:", error);
-      toast.error("Failed to update brand");
-    }
-  };
-
-  const handleDeleteBrand = async (brandId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/brands/${brandId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setBrands(brands.filter((brand) => brand._id !== brandId));
-      toast.success("Brand deleted successfully");
-    } catch (error) {
-      console.error("Error deleting brand:", error);
-      toast.error("Failed to delete brand");
-    }
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-xl font-bold mb-4">Manage Brands</h2>
-     
-      <ul className="list-disc pl-5">
-        {brands.map((brand) => (
-          <li key={brand._id} className="mb-2 flex items-center">
-            {editingBrandId === brand._id ? (
-              <div className="w-full">
-                <input
-                  type="text"
-                  value={editingBrandName}
-                  onChange={(e) => setEditingBrandName(e.target.value)}
-                  className="border border-gray-300 p-2 w-full"
-                />
-                <input
-                  type="file"
-                  onChange={(e) => setEditingBrandImage(e.target.files[0])}
-                  className="mt-2"
-                />
-                <button
-                  onClick={handleEditBrand}
-                  className="bg-green-500 text-white px-4 py-2 rounded mt-2 mr-2"
+    <>
+      <div className="md:hidden flex items-center p-4">
+        <button
+          onClick={toggleSidebar}
+          className="text-gray-600 focus:outline-none"
+        >
+          {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        </button>
+      </div>
+
+      <div
+        className={`fixed inset-y-0 left-0 bg-gray-800 text-white transform ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } transition-transform duration-300 ease-in-out md:translate-x-0 z-50 w-64`}
+      >
+        <div className="p-6">
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <nav className="mt-6">
+            <ul>
+              <li className="mb-4">
+                <Link
+                  to="/"
+                  className="flex items-center p-2 hover:bg-gray-700 rounded"
+                  onClick={toggleSidebar}
                 >
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setEditingBrandId(null);
-                    setEditingBrandName("");
-                    setEditingBrandImage(null);
-                  }}
-                  className="bg-red-500 text-white px-4 py-2 rounded mt-2"
+                  <FaHome className="mr-3" />
+                  Dashboard
+                </Link>
+              </li>
+              <li className="mb-4">
+                <Link
+                  to="/users-list"
+                  className="flex items-center p-2 hover:bg-gray-700 rounded"
+                  onClick={toggleSidebar}
                 >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center">
-                  {brand.image && (
-                    <img
-                      src={brand.image}
-                      alt={brand.name}
-                      className="w-16 h-16 object-cover rounded mr-4"
-                    />
-                  )}
-                  <span>{brand.name}</span>
-                </div>
-                <div>
-                  <button
-                    onClick={() => {
-                      setEditingBrandId(brand._id);
-                      setEditingBrandName(brand.name);
-                      setEditingBrandImage(null); // reset image
-                    }}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteBrand(brand._id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-      {/* <CategoryAndBrandManager /> */}
-    </div>
+                  <FaUser className="mr-3" />
+                  Users
+                </Link>
+              </li>
+              <li className="mb-4">
+                <Link
+                  to="/products"
+                  className="flex items-center p-2 hover:bg-gray-700 rounded"
+                  onClick={toggleSidebar}
+                >
+                  <FaBox className="mr-3" />
+                  Products
+                </Link>
+              </li>
+              {/* Add more menu items here */}
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-50 md:hidden"
+          onClick={toggleSidebar}
+        />
+      )}
+    </>
   );
 };
 
-export default BrandsManager;
+export default Sidebar;

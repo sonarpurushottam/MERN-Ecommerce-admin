@@ -32,7 +32,7 @@ export default function NextNavbar() {
     { name: "Categories", path: "/categories" },
     { name: "Brands", path: "/brands" },
     { name: "Shubham", path: "/home" },
-    { name: "Deployments", path: "#" },
+    { name: "Users List", path: "/users-list" },
     { name: "My Settings", path: "#" },
     { name: "Team Settings", path: "#" },
     { name: "Help & Feedback", path: "#" },

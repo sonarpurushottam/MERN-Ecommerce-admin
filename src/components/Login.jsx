@@ -1,6 +1,5 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useLogin } from "../hooks/useLogin";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -8,8 +7,8 @@ const Login = () => {
   const [emailOrMobile, setEmailOrMobile] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+
+  const { login, isLoading } = useLogin();
 
   const validateEmailOrMobile = (input) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || /^[0-9]{10}$/.test(input);
@@ -18,50 +17,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
     if (!validateEmailOrMobile(emailOrMobile)) {
       toast.error("Invalid email address or mobile number");
-      setLoading(false);
       return;
     }
 
     if (!validatePassword(password)) {
       toast.error("Password must be at least 6 characters");
-      setLoading(false);
       return;
     }
 
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/users/login",
-        { emailOrMobile, password },
-        { withCredentials: true }
-      );
-
-      const { token, role } = response.data;
-
-      if (role === "admin" || role === "superadmin") {
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
-
-        if (role === "superadmin") {
-          navigate("/super-admin");
-        } else {
-          navigate("/admin-dashboard");
-        }
-
-        toast.success("Login successful!");
-      } else {
-        toast.error("Unauthorized");
-      }
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "An error occurred during login"
-      );
-    } finally {
-      setLoading(false);
-    }
+    login({ emailOrMobile, password });
   };
 
   return (
@@ -110,11 +77,11 @@ const Login = () => {
             <button
               type="submit"
               className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md w-full transition duration-150 ease-in-out ${
-                loading ? "opacity-50 cursor-not-allowed" : ""
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
               }`}
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? "Logging in..." : "Login"}
+              {isLoading ? "Logging in..." : "Login"}
             </button>
           </div>
           {/* Optional Forgot Password */}

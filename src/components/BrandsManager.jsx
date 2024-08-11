@@ -1,31 +1,20 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-hot-toast";
+import { useState } from "react";
+import { useBrandsManager } from "../hooks/useBrandsManager";
 
 const BrandsManager = () => {
-  const [brands, setBrands] = useState([]);
+  const {
+    brands,
+    fetchError,
+    isLoading,
+    mutateUpdateBrand,
+    mutateDeleteBrand,
+  } = useBrandsManager();
   const [editingBrandId, setEditingBrandId] = useState(null);
   const [editingBrandName, setEditingBrandName] = useState("");
   const [editingBrandImage, setEditingBrandImage] = useState(null);
   const [currentBrandImage, setCurrentBrandImage] = useState(null);
 
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/brands/get"
-        );
-        setBrands(response.data);
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-        toast.error("Failed to load brands");
-      }
-    };
-
-    fetchBrands();
-  }, []);
-
-  const handleEditBrand = async () => {
+  const handleEditBrand = () => {
     if (!editingBrandName) return;
 
     const formData = new FormData();
@@ -34,53 +23,25 @@ const BrandsManager = () => {
       formData.append("brandImage", editingBrandImage);
     }
 
-    try {
-      const response = await axios.put(
-        `http://localhost:5000/api/brands/${editingBrandId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setBrands(
-        brands.map((brand) =>
-          brand._id === editingBrandId ? response.data : brand
-        )
-      );
-      setEditingBrandId(null);
-      setEditingBrandName("");
-      setEditingBrandImage(null);
-      setCurrentBrandImage(null);
-      toast.success("Brand updated successfully");
-    } catch (error) {
-      console.error("Error updating brand:", error);
-      toast.error("Failed to update brand");
-    }
+    mutateUpdateBrand({ id: editingBrandId, formData });
+    setEditingBrandId(null);
+    setEditingBrandName("");
+    setEditingBrandImage(null);
+    setCurrentBrandImage(null);
   };
 
-  const handleDeleteBrand = async (brandId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/brands/${brandId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setBrands(brands.filter((brand) => brand._id !== brandId));
-      toast.success("Brand deleted successfully");
-    } catch (error) {
-      console.error("Error deleting brand:", error);
-      toast.error("Failed to delete brand");
-    }
+  const handleDeleteBrand = (brandId) => {
+    mutateDeleteBrand(brandId);
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setEditingBrandImage(file);
-    setCurrentBrandImage(URL.createObjectURL(file)); // Display the selected image preview
+    setCurrentBrandImage(URL.createObjectURL(file));
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (fetchError) return <p>Error fetching brands: {fetchError.message}</p>;
 
   return (
     <div className="container mx-auto p-4">
@@ -151,8 +112,8 @@ const BrandsManager = () => {
                     onClick={() => {
                       setEditingBrandId(brand._id);
                       setEditingBrandName(brand.name);
-                      setEditingBrandImage(null); // reset image
-                      setCurrentBrandImage(brand.image); // Show current image
+                      setEditingBrandImage(null);
+                      setCurrentBrandImage(brand.image);
                     }}
                     className="bg-yellow-500 text-white px-4 py-2 rounded mr-2"
                   >

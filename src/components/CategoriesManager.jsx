@@ -1,36 +1,25 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-hot-toast";
+import React, { useState } from "react";
+import { useCategoriesManager } from "../hooks/useCategoriesManager";
 
 const CategoriesManager = () => {
-  const [categories, setCategories] = useState([]);
+  const {
+    categories,
+    fetchError,
+    isLoading,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+  } = useCategoriesManager();
+
   const [newCategory, setNewCategory] = useState("");
   const [selectedCategoryImage, setSelectedCategoryImage] = useState(null);
-  const [selectedCategoryImagePreview, setSelectedCategoryImagePreview] =
-    useState(null);
+  const [selectedCategoryImagePreview, setSelectedCategoryImagePreview] = useState(null);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
   const [editingCategoryImage, setEditingCategoryImage] = useState(null);
-  const [editingCategoryImagePreview, setEditingCategoryImagePreview] =
-    useState(null);
+  const [editingCategoryImagePreview, setEditingCategoryImagePreview] = useState(null);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:5000/api/categories/get"
-      );
-      setCategories(response.data);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      toast.error("Failed to load categories");
-    }
-  };
-
-  const handleAddCategory = async () => {
+  const handleAddCategory = () => {
     if (!newCategory) return;
 
     const formData = new FormData();
@@ -39,29 +28,13 @@ const CategoriesManager = () => {
       formData.append("categoryImage", selectedCategoryImage);
     }
 
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/categories/create",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setCategories([...categories, response.data]);
-      setNewCategory("");
-      setSelectedCategoryImage(null);
-      setSelectedCategoryImagePreview(null);
-      toast.success("Category added successfully");
-    } catch (error) {
-      console.error("Error adding category:", error);
-      toast.error("Failed to add category");
-    }
+    addCategory(formData);
+    setNewCategory("");
+    setSelectedCategoryImage(null);
+    setSelectedCategoryImagePreview(null);
   };
 
-  const handleEditCategory = async () => {
+  const handleEditCategory = () => {
     if (!editingCategoryName) return;
 
     const formData = new FormData();
@@ -70,48 +43,15 @@ const CategoriesManager = () => {
       formData.append("categoryImage", editingCategoryImage);
     }
 
-    try {
-      const response = await axios.put(
-        `http://localhost:5000/api/categories/${editingCategoryId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setCategories(
-        categories.map((category) =>
-          category._id === editingCategoryId ? response.data : category
-        )
-      );
-      setEditingCategoryId(null);
-      setEditingCategoryName("");
-      setEditingCategoryImage(null);
-      setEditingCategoryImagePreview(null);
-      toast.success("Category updated successfully");
-    } catch (error) {
-      console.error("Error updating category:", error);
-      toast.error("Failed to update category");
-    }
+    updateCategory({ id: editingCategoryId, formData });
+    setEditingCategoryId(null);
+    setEditingCategoryName("");
+    setEditingCategoryImage(null);
+    setEditingCategoryImagePreview(null);
   };
 
-  const handleDeleteCategory = async (categoryId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/categories/${categoryId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      setCategories(
-        categories.filter((category) => category._id !== categoryId)
-      );
-      toast.success("Category deleted successfully");
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      toast.error("Failed to delete category");
-    }
+  const handleDeleteCategory = (categoryId) => {
+    deleteCategory(categoryId);
   };
 
   const handleImageChange = (e, isEditing = false) => {
@@ -126,6 +66,9 @@ const CategoriesManager = () => {
       }
     }
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (fetchError) return <div>Error loading categories</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">

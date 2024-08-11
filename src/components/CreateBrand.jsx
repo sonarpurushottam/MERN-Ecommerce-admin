@@ -1,32 +1,19 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import  { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import BrandsManager from "./BrandsManager";
+import { useFetchCategories } from "../hooks/useFetchCategories";
+import { useCreateBrand } from "../hooks/useCreateBrand";
+
 
 const CreateBrand = () => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { data: categories = [], isLoading: categoriesLoading } =
+    useFetchCategories();
+  const { mutate: createBrand, isLoading: creating } = useCreateBrand();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/categories/get"
-        );
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -34,9 +21,8 @@ const CreateBrand = () => {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
 
     const formData = new FormData();
     formData.append("name", name);
@@ -45,23 +31,18 @@ const CreateBrand = () => {
       formData.append("brandImage", image);
     }
 
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/brands/create", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      toast.success("Brand created successfully");
-      navigate("/brands");
-    } catch (error) {
-      toast.error("Error creating brand");
-      console.error("Error creating brand", error);
-    } finally {
-      setLoading(false);
-    }
+    createBrand(formData, {
+      onSuccess: () => {
+        toast.success("Brand created successfully");
+        // navigate("/brands");
+      },
+      onError: () => {
+        toast.error("Error creating brand");
+      },
+    });
   };
+
+  if (categoriesLoading) return <p>Loading categories...</p>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">
@@ -132,15 +113,15 @@ const CreateBrand = () => {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={creating}
           className={`mt-4 py-2 px-4 rounded-md text-white ${
-            loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+            creating ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
           } transition-colors`}
         >
-          {loading ? "Creating..." : "Create Brand"}
+          {creating ? "Creating..." : "Create Brand"}
         </button>
       </form>
-      <BrandsManager />
+      
     </div>
   );
 };

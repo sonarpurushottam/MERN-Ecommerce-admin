@@ -11,10 +11,11 @@ import EditProduct from "./components/EditProduct";
 import ProductList from "./components/ProductList";
 import UploadProduct from "./components/UploadProduct";
 import CategoriesManager from "./components/CategoriesManager";
-import NextNavbar from "./components/header/NextNavbar";
+import AdminSidebar from "./components/AdminSidebar";
 import UsersList from "./components/UsersList";
 import Shubham from "./components/Shubham";
 import BrandManager from "./components/BrandManager";
+import "./App.css";
 
 const App = () => {
   return (
@@ -29,26 +30,28 @@ const MainContent = () => {
   const isLoginPage = location.pathname === "/";
 
   return (
-    <>
-      {!isLoginPage && <NextNavbar />}
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/products-list" element={<ProductList />} />
-        <Route path="/upload-product" element={<UploadProduct />} />
-        <Route path="/categories" element={<CategoriesManager />} />
-        <Route path="/brands" element={<BrandManager />} />
-        <Route path="/users-list" element={<UsersList />} />
-        <Route path="/product/edit/:id" element={<EditProduct />} />
-        <Route path="/shubham" element={<Shubham />} />
-
-        <Route
-          path="/admin-dashboard"
-          element={
-            <PrivateRoute element={<AdminDashboard />} roles={["admin"]} />
-          }
-        />
-      </Routes>
-    </>
+    <div className="flex">
+      {/* Render AdminSidebar only if not on the login page */}
+      {!isLoginPage && <AdminSidebar />}
+      <main className={`flex-1 ${!isLoginPage ? "ml-64" : ""} p-4`}>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/products-list" element={<ProductList />} />
+          <Route path="/upload-product" element={<UploadProduct />} />
+          <Route path="/categories" element={<CategoriesManager />} />
+          <Route path="/brands" element={<BrandManager />} />
+          <Route path="/users-list" element={<UsersList />} />
+          <Route path="/product/edit/:id" element={<EditProduct />} />
+          <Route path="/shubham" element={<Shubham />} />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <PrivateRoute element={<AdminDashboard />} roles={["admin"]} />
+            }
+          />
+        </Routes>
+      </main>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { useProducts } from "../hooks/useProducts";
@@ -10,12 +9,11 @@ const ProductList = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (selectedProduct) {
-      await deleteProduct(selectedProduct._id);
+      deleteProduct(selectedProduct._id);
       setSelectedProduct(null);
       setShowDeleteModal(false);
-      toast.success("Product deleted successfully!");
     }
   };
 
@@ -23,6 +21,12 @@ const ProductList = () => {
     setSelectedProduct(product);
     setShowDeleteModal(true);
   };
+
+  const sortedProducts = products?.length
+    ? [...products].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      )
+    : [];
 
   if (isLoading)
     return (
@@ -40,6 +44,15 @@ const ProductList = () => {
       <div className="flex justify-center items-center h-screen">
         <p className="text-red-500 text-lg font-semibold">
           Error loading products.
+        </p>
+      </div>
+    );
+
+  if (!products || products.length === 0)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-gray-500 text-lg font-semibold">
+          No products available.
         </p>
       </div>
     );
@@ -75,7 +88,7 @@ const ProductList = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {products.map((product, index) => (
+                {sortedProducts.map((product, index) => (
                   <motion.tr
                     key={product._id}
                     initial={{ opacity: 0, x: -20 }}

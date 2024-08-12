@@ -19,11 +19,10 @@ const UploadProduct = () => {
     isLoading,
     isError,
     error,
- 
   } = useUploadProduct();
 
   const handleImageChange = (event) => {
-    setImages([...images, ...event.target.files]);
+    setImages([...event.target.files]);
   };
 
   const handleRemoveImage = (index) => {
@@ -170,7 +169,7 @@ const UploadProduct = () => {
             />
             {images.length > 0 && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from(images).map((image, index) => (
+                {images.map((image, index) => (
                   <motion.div
                     key={index}
                     className="relative"
@@ -180,7 +179,7 @@ const UploadProduct = () => {
                   >
                     <img
                       src={URL.createObjectURL(image)}
-                      alt="Preview"
+                      alt={`Preview ${index}`}
                       className="w-full h-32 object-cover rounded-md border border-gray-300"
                     />
                     <button

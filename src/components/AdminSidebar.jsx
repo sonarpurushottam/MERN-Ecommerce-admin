@@ -7,13 +7,13 @@ import {
   DropdownMenu,
   Avatar,
 } from "@nextui-org/react";
-import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { toast } from "react-hot-toast";
+import { useUserProfile } from "../hooks/useUserProfile";
+import { useLogout } from "../hooks/useLogout";
 
 export default function AdminSidebar() {
-  const [user, setUser] = useState(null);
+  const { data: user, isLoading } = useUserProfile();
+  const { mutate: handleLogout, isLoading: isLoggingOut } = useLogout();
   const navigate = useNavigate();
 
   const menuItems = [
@@ -26,51 +26,18 @@ export default function AdminSidebar() {
     { name: "Users List", path: "/users-list" },
   ];
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/users/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setUser(data);
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        "http://localhost:5000/api/users/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      localStorage.removeItem("token"); // Remove token from localStorage
-      toast.success("Logged out successfully"); // Show success toast
-      navigate("/"); // Navigate to login page
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast.error("Failed to log out"); // Show error toast
-    }
+  const onLogout = () => {
+    handleLogout();
+  };
+  const onEditProfile = () => {
+    navigate("/edit-profile");
   };
 
   return (
     <div className="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white">
       <Navbar shouldHideOnScroll isBordered>
         <NavbarBrand className="flex items-center p-4">
-          <p className="text-xl font-bold">ACME</p>
+          <p className="text-xl font-bold">ADMIN</p>
         </NavbarBrand>
         <Dropdown placement="bottom-end" className="mt-auto">
           <DropdownTrigger>
@@ -81,22 +48,27 @@ export default function AdminSidebar() {
               color="secondary"
               name={user ? user.username : "User"}
               size="md"
-              src={
-                user?.profilePic ||
-                "https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              }
+              src={user?.profilePic}
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">
             <DropdownItem key="profile" className="h-14 gap-2">
               <p className="font-semibold">Signed in as</p>
               <p className="font-semibold">
-                {user ? user.email : "Loading..."}
+                {isLoading ? "Loading..." : user?.email}
               </p>
             </DropdownItem>
+            <DropdownItem key="edit-profile" onClick={onEditProfile}>
+              <p className="font-semibold">edit profile</p>
+            </DropdownItem>
 
-            <DropdownItem key="logout" color="danger" onClick={handleLogout}>
-              Log Out
+            <DropdownItem
+              key="logout"
+              color="danger"
+              onClick={onLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? "Logging out..." : "Log Out"}
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>

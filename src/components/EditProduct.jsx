@@ -1,4 +1,3 @@
-// src/components/EditProduct.js
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
@@ -6,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchProductById } from "../api/products";
 import { useProducts } from "../hooks/useProducts";
 import { motion } from "framer-motion";
+import { FaTrashAlt } from "react-icons/fa";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -40,20 +40,13 @@ const EditProduct = () => {
   }, [product]);
 
   const handleImageChange = (event) => {
-    const newFiles = Array.from(event.target.files);
-    const existingFiles = newImages.map((file) => file.name);
-
-    const duplicates = newFiles.filter((file) =>
-      existingFiles.includes(file.name)
-    );
-
-    if (duplicates.length > 0) {
-      toast.error("Some images are duplicates and won't be added.");
+    setNewImages(event.target.files);
+  };
+  const handleRemoveImage = (index, isExistingImage = false) => {
+    if (isExistingImage) {
+      setProductImages(productImages.filter((_, i) => i !== index));
     } else {
-      const uniqueFiles = newFiles.filter(
-        (file) => !existingFiles.includes(file.name)
-      );
-      setNewImages([...newImages, ...uniqueFiles]);
+      setNewImages(newImages.filter((_, i) => i !== index));
     }
   };
 
@@ -61,7 +54,6 @@ const EditProduct = () => {
     event.preventDefault();
     const formData = new FormData();
     formData.append("name", productName);
-
     formData.append("description", description);
     formData.append("price", price);
     formData.append("sellingPrice", sellingPrice);
@@ -70,9 +62,9 @@ const EditProduct = () => {
       formData.append("existingImages", image);
     });
 
-    newImages.forEach((image) => {
-      formData.append("newImages", image);
-    });
+    for (let i = 0; i < newImages.length; i++) {
+      formData.append("newImages", newImages[i]);
+    }
 
     updateProduct(
       { id, formData },
@@ -140,15 +132,23 @@ const EditProduct = () => {
             <label className="block mb-2 font-medium">Existing Images:</label>
             <div className="flex flex-wrap gap-2">
               {productImages.map((image, index) => (
-                <motion.img
-                  key={index}
-                  src={image}
-                  alt="Product"
-                  className="w-24 h-24 object-cover rounded-lg shadow-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                />
+                <div key={index} className="relative">
+                  <motion.img
+                    src={image}
+                    alt="Product"
+                    className="w-24 h-24 object-cover rounded-lg shadow-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index, true)}
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full"
+                  >
+                    <FaTrashAlt />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -162,15 +162,23 @@ const EditProduct = () => {
             />
             <div className="flex flex-wrap gap-2 mt-2">
               {Array.from(newImages).map((file, index) => (
-                <motion.img
-                  key={index}
-                  src={URL.createObjectURL(file)}
-                  alt="New Product"
-                  className="w-24 h-24 object-cover rounded-lg shadow-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                />
+                <div key={index} className="relative">
+                  <motion.img
+                    src={URL.createObjectURL(file)}
+                    alt="New Product"
+                    className="w-24 h-24 object-cover rounded-lg shadow-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full"
+                  >
+                    <FaTrashAlt />
+                  </button>
+                </div>
               ))}
             </div>
           </div>

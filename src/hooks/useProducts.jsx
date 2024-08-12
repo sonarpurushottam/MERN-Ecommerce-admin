@@ -1,41 +1,6 @@
-// // src/hooks/useProducts.js
-// import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// import { fetchProducts, deleteProduct } from "../api/products";
-// import { toast } from "react-hot-toast";
-
-// export const useProducts = () => {
-//   const queryClient = useQueryClient();
-
-//   // Fetch products query
-//   const productsQuery = useQuery({
-//     queryKey: ["products"],
-//     queryFn: fetchProducts,
-//   });
-
-//   // Delete product mutation
-//   const deleteProductMutation = useMutation({
-//     mutationFn: deleteProduct,
-//     onSuccess: () => {
-//       queryClient.invalidateQueries(["products"]);
-//       toast.success("Product deleted successfully!");
-//     },
-//     onError: () => {
-//       toast.error("Failed to delete product.");
-//     },
-//   });
-
-//   return {
-//     products: productsQuery.data,
-//     isLoading: productsQuery.isLoading,
-//     isError: productsQuery.isError,
-//     deleteProduct: deleteProductMutation.mutate,
-//   };
-// };
-
-// src/hooks/useProducts.js
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchProducts, deleteProduct, updateProduct } from '../api/products';
-import { toast } from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchProducts, deleteProduct, updateProduct } from "../api/products";
+import { toast } from "react-hot-toast";
 
 // Custom hook for managing products
 export const useProducts = () => {
@@ -43,7 +8,7 @@ export const useProducts = () => {
 
   // Fetch all products query
   const productsQuery = useQuery({
-    queryKey: ['products'],
+    queryKey: ["products"],
     queryFn: fetchProducts,
   });
 
@@ -51,11 +16,11 @@ export const useProducts = () => {
   const deleteProductMutation = useMutation({
     mutationFn: deleteProduct,
     onSuccess: () => {
-      queryClient.invalidateQueries(['products']);
-      toast.success('Product deleted successfully!');
+      queryClient.invalidateQueries(["products"]);
+      toast.success("Product deleted successfully!");
     },
     onError: () => {
-      toast.error('Failed to delete product.');
+      toast.error("Failed to delete product.");
     },
   });
 
@@ -63,16 +28,16 @@ export const useProducts = () => {
   const updateProductMutation = useMutation({
     mutationFn: ({ id, formData }) => updateProduct({ id, formData }),
     onSuccess: (id) => {
-      queryClient.invalidateQueries(['product', id]); // Refresh the product data
-      toast.success('Product updated successfully!');
+      queryClient.invalidateQueries(["product", id]); // Refresh the product data
+      toast.success("Product updated successfully!");
     },
     onError: () => {
-      toast.error('Failed to update product.');
+      toast.error("Failed to update product.");
     },
   });
 
   return {
-    products: productsQuery.data,
+    products: productsQuery.data || [], // Ensure it's an array, even if data is undefined
     isLoading: productsQuery.isLoading,
     isError: productsQuery.isError,
     deleteProduct: deleteProductMutation.mutate,

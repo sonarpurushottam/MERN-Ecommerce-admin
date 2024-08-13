@@ -1,124 +1,156 @@
-import {
-  Navbar,
-  NavbarBrand,
-  DropdownItem,
-  DropdownTrigger,
-  Dropdown,
-  DropdownMenu,
-  Avatar,
-} from "@nextui-org/react";
-import { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { toast } from "react-hot-toast";
+import React, { useState } from 'react';
+import { useEditProduct } from '../hooks/useEditProduct';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
-export default function AdminSidebar() {
-  const [user, setUser] = useState(null);
+const EditProduct = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { product, isFetchingProduct, updateProduct, isUpdatingProduct } = useEditProduct(id);
+  const [formData, setFormData] = useState({
+    name: '',
+    brand: '',
+    category: '',
+    description: '',
+    price: '',
+    newImages: [],
+  });
 
-  const menuItems = [
-    { name: "Home", path: "/admin-dashboard" },
-    { name: "Product List", path: "/products-list" },
-    { name: "Add New Product", path: "/upload-product" },
-    { name: "Categories", path: "/categories" },
-    { name: "Brands", path: "/brands" },
-    { name: "Shubham", path: "/shubham" },
-    { name: "Users List", path: "/users-list" },
-  ];
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/users/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setUser(data);
-      } catch (error) {
-        console.error("Failed to fetch user profile:", error);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        "http://localhost:5000/api/users/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      localStorage.removeItem("token"); // Remove token from localStorage
-      toast.success("Logged out successfully"); // Show success toast
-      navigate("/"); // Navigate to login page
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast.error("Failed to log out"); // Show error toast
+  React.useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name,
+        brand: product.brand,
+        category: product.category,
+        description: product.description,
+        price: product.price,
+        newImages: [],
+      });
     }
+  }, [product]);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = (e) => {
+    setFormData({ ...formData, newImages: e.target.files });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const updatedData = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === 'newImages') {
+        Array.from(formData[key]).forEach((image) => updatedData.append('newImages', image));
+      } else {
+        updatedData.append(key, formData[key]);
+      }
+    });
+
+    updateProduct(updatedData, {
+      onSuccess: () => {
+        toast.success('Product updated successfully!');
+        navigate('/admin/products');
+      },
+      onError: (error) => {
+        toast.error(`Error: ${error.message}`);
+      },
+    });
   };
 
   return (
-    <div className="fixed top-0 left-0 h-full w-64 bg-gray-800 text-white">
-      <Navbar shouldHideOnScroll isBordered>
-        <NavbarBrand className="flex items-center p-4">
-          <p className="text-xl font-bold">ACME</p>
-        </NavbarBrand>
-        <Dropdown placement="bottom-end" className="mt-auto">
-          <DropdownTrigger>
-            <Avatar
-              isBordered
-              as="button"
-              className="transition-transform"
-              color="secondary"
-              name={user ? user.username : "User"}
-              size="md"
-              src={
-                user?.profilePic ||
-                "https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              }
-            />
-          </DropdownTrigger>
-          <DropdownMenu aria-label="Profile Actions" variant="flat">
-            <DropdownItem key="profile" className="h-14 gap-2">
-              <p className="font-semibold">Signed in as</p>
-              <p className="font-semibold">
-                {user ? user.email : "Loading..."}
-              </p>
-            </DropdownItem>
-
-            <DropdownItem key="logout" color="danger" onClick={handleLogout}>
-              Log Out
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </Navbar>
-
-      <div className="flex flex-col p-4">
-        <div className="flex-1">
-          {menuItems.map((item, index) => (
-            <NavLink
-              key={index}
-              to={item.path}
-              className={({ isActive }) =>
-                `block p-2 rounded ${
-                  isActive ? "bg-gray-600" : "hover:bg-gray-700"
-                }`
-              }
-            >
-              {item.name}
-            </NavLink>
-          ))}
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="max-w-3xl mx-auto p-4 bg-white shadow-lg rounded-lg"
+    >
+      {isFetchingProduct ? (
+        <div className="flex justify-center items-center h-full">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      </div>
-    </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <h1 className="text-2xl font-bold text-gray-800">Edit Product</h1>
+
+          <div>
+            <label className="block text-gray-600">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600">Brand</label>
+            <input
+              type="text"
+              name="brand"
+              value={formData.brand}
+              onChange={handleInputChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600">Category</label>
+            <input
+              type="text"
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600">Description</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600">Price</label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleInputChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-600">Product Images</label>
+            <input
+              type="file"
+              name="newImages"
+              multiple
+              onChange={handleImageChange}
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded-md shadow-md hover:bg-blue-600"
+            disabled={isUpdatingProduct}
+          >
+            {isUpdatingProduct ? 'Updating...' : 'Update Product'}
+          </button>
+        </form>
+      )}
+    </motion.div>
   );
-}
+};
+
+export default EditProduct;

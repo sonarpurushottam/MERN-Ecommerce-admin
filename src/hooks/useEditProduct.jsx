@@ -1,70 +1,57 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchProductById, updateProduct } from "../api/products";
-import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "../api/axiosInstance";
 
-export const useProduct = (id) => {
+export const useEditProduct = (productId) => {
+  const queryClient = useQueryClient();
+
+  // Function to fetch the product details
+  const fetchProduct = async () => {
+    const { data } = await axiosInstance.get(`/products/${productId}`);
+    return data.product;
+  };
+
+  // useQuery to get the product details
   const {
     data: product,
-    isLoading,
-    isError,
+    isLoading: isFetchingProduct,
+    error: fetchError,
   } = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => fetchProductById(id),
-    enabled: !!id,
+    queryKey: ["product", productId],
+    queryFn: fetchProduct,
   });
 
-  const { mutate: updateProductMutation, isLoading: isUpdating } = useMutation({
-    mutationFn: (formData) => updateProduct({ id, formData }),
-    onError: (error) => {
-      console.error("Error updating product:", error);
-      // Optionally, you can use a notification library here
-    },
+  // Function to update the product details with images
+  const updateProduct = async (updatedData) => {
+    const response = await axiosInstance.put(
+      `/products/${productId}`,
+      updatedData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data.product;
+  };
+
+  // useMutation to handle the update operation
+  const mutation = useMutation({
+    mutationFn: updateProduct,
     onSuccess: () => {
-      // Handle successful update (e.g., show a success message or navigate)
+      // Invalidate the product query to refetch the updated data
+      queryClient.invalidateQueries(["product", productId]);
+    },
+    onError: (error) => {
+      console.error("Error updating the product:", error);
     },
   });
-
-  // Form state and handlers
-  const [productName, setProductName] = useState(product?.productName || "");
-  const [description, setDescription] = useState(product?.description || "");
-  const [price, setPrice] = useState(product?.price || "");
-  const [newImages, setNewImages] = useState([]);
-
-  const handleImageChange = (event) => {
-    // Handle image file changes
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const formData = new FormData();
-    formData.append("productName", productName);
-    formData.append("description", description);
-    formData.append("price", price);
-
-    newImages.forEach((image) => {
-      formData.append("newImages", image);
-    });
-
-    try {
-      await updateProductMutation(formData);
-    } catch (error) {
-      console.error("Error updating product:", error);
-    }
-  };
 
   return {
     product,
-    isLoading,
-    isError,
-    productName,
-    setProductName,
-    description,
-    setDescription,
-    price,
-    setPrice,
-    newImages,
-    handleImageChange,
-    handleSubmit,
-    isUpdating,
+    isFetchingProduct,
+    fetchError,
+    updateProduct: mutation.mutate,
+    isUpdatingProduct: mutation.isLoading,
+    updateError: mutation.error,
   };
 };

@@ -1,3 +1,5 @@
+import Order from "../components/Order";
+
 const AdminDashboard = () => {
   console.log(localStorage.getItem("role")); // Should log the role if stored correctly
   console.log(localStorage.getItem("token"));
@@ -5,6 +7,7 @@ const AdminDashboard = () => {
   return (
     <div>
       <h1>Admin Dashboard</h1>
+      <Order/>
     </div>
   );
 };

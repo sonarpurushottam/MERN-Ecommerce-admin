@@ -22,7 +22,6 @@ export default function AdminSidebar() {
     { name: "Add New Product", path: "/upload-product" },
     { name: "Categories", path: "/categories" },
     { name: "Brands", path: "/brands" },
-    { name: "Shubham", path: "/shubham" },
     { name: "Users List", path: "/users-list" },
   ];
 

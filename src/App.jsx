@@ -13,7 +13,7 @@ import UploadProduct from "./components/UploadProduct";
 import CategoriesManager from "./components/CategoriesManager";
 import AdminSidebar from "./components/AdminSidebar";
 import UsersList from "./components/UsersList";
-import Shubham from "./components/Shubham";
+
 import BrandManager from "./components/BrandManager";
 import "./App.css";
 import UserProfile from "./components/UserProfile";
@@ -43,7 +43,7 @@ const MainContent = () => {
           <Route path="/brands" element={<BrandManager />} />
           <Route path="/users-list" element={<UsersList />} />
           <Route path="/product/edit/:id" element={<EditProduct />} />
-          <Route path="/shubham" element={<Shubham />} />
+  
           <Route path="/edit-profile" element={<UserProfile />} />
           <Route
             path="/admin-dashboard"

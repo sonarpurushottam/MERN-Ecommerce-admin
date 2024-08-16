@@ -4,6 +4,7 @@ import { useUploadProduct } from "../hooks/useUploadProduct";
 import { motion } from "framer-motion";
 import { FaUpload, FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { Input, Select, SelectItem, Avatar } from "@nextui-org/react";
 
 const UploadProduct = () => {
   const [name, setName] = useState("");
@@ -94,31 +95,48 @@ const UploadProduct = () => {
       <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="mb-4">
-            <label className="block text-gray-700">Product Name</label>
-            <input
-              type="text"
+            <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border border-gray-300 p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="text"
+              label="Product Name"
+              variant="bordered"
+              className="max-w-xs"
               required
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="border border-gray-300 p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">Select a category</option>
-              {data?.categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="mb-4">
+              <Select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                label="Category"
+                placeholder="Select a category"
+                labelPlacement="outside"
+                className="max-w-xs"
+              >
+                {data?.categories.map((category) => (
+                  <SelectItem
+                    key={category._id}
+                    value={category._id}
+                    textValue={category.name}
+                  >
+                    <div className="flex gap-2 items-center">
+                      <Avatar
+                        alt={category.name}
+                        className="flex-shrink-0"
+                        size="sm"
+                        src={category.image}
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-small">{category.name}</span>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </Select>
+            </div>
           </div>
 
           <div className="mb-4">

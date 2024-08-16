@@ -43,7 +43,7 @@ const MainContent = () => {
           <Route path="/brands" element={<BrandManager />} />
           <Route path="/users-list" element={<UsersList />} />
           <Route path="/product/edit/:id" element={<EditProduct />} />
-  
+
           <Route path="/edit-profile" element={<UserProfile />} />
           <Route
             path="/admin-dashboard"

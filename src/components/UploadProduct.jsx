@@ -4,7 +4,7 @@ import { useUploadProduct } from "../hooks/useUploadProduct";
 import { motion } from "framer-motion";
 import { FaUpload, FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-hot-toast";
-import { Input, Select, SelectItem, Avatar } from "@nextui-org/react";
+import { Input, Select, SelectItem, Avatar, Textarea } from "@nextui-org/react";
 
 const UploadProduct = () => {
   const [name, setName] = useState("");
@@ -68,7 +68,7 @@ const UploadProduct = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <FaUpload className="text-blue-500" /> Upload Product
+        <FaUpload className="text-blue-500" /> Add Product
       </motion.h1>
 
       {fetchError && (
@@ -93,44 +93,75 @@ const UploadProduct = () => {
       )}
 
       <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="mb-4">
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              type="text"
-              label="Product Name"
-              variant="bordered"
+        <div className="mb-4 ">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            type="text"
+            label="Product Name"
+            variant="bordered"
+            className="max-w-xs"
+            required
+          />
+
+          <div className="mb-4 pt-4 ">
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              label="Category"
+              placeholder="Select a category"
+              labelPlacement="outside"
               className="max-w-xs"
-              required
-            />
+              variant="bordered"
+            >
+              {data?.categories.map((category) => (
+                <SelectItem
+                  key={category._id}
+                  value={category._id}
+                  textValue={category.name}
+                >
+                  <div className="flex gap-2 items-center">
+                    <Avatar
+                      alt={category.name}
+                      className="flex-shrink-0"
+                      size="sm"
+                      src={category.image}
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-small">{category.name}</span>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </Select>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="mb-4">
               <Select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                label="Category"
-                placeholder="Select a category"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                label="Brand"
+                placeholder="Select a Brand"
                 labelPlacement="outside"
                 className="max-w-xs"
+                variant="bordered"
               >
-                {data?.categories.map((category) => (
+                {data?.brands.map((brand) => (
                   <SelectItem
-                    key={category._id}
-                    value={category._id}
-                    textValue={category.name}
+                    key={brand._id}
+                    value={brand._id}
+                    textValue={brand.name}
                   >
                     <div className="flex gap-2 items-center">
                       <Avatar
-                        alt={category.name}
+                        alt={brand.name}
                         className="flex-shrink-0"
                         size="sm"
-                        src={category.image}
+                        src={brand.image}
                       />
                       <div className="flex flex-col">
-                        <span className="text-small">{category.name}</span>
+                        <span className="text-small">{brand.name}</span>
                       </div>
                     </div>
                   </SelectItem>
@@ -139,51 +170,43 @@ const UploadProduct = () => {
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700">Brand</label>
-            <select
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              className="border border-gray-300 p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">Select a brand</option>
-              {data?.brands.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="mb-4 col-span-2">
-            <label className="block text-gray-700">Description</label>
-            <textarea
+            <Textarea
+              label="Description"
+              placeholder="Enter your description"
+              className="max-w-xs"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="border border-gray-300 p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
+              variant="bordered"
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700">Price</label>
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="border border-gray-300 p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          <Input
+            type="number"
+            label="Price"
+            placeholder="0.00"
+            labelPlacement="outside"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="max-w-xs"
+            variant="bordered"
+            startContent={
+              <div className="pointer-events-none flex items-center">
+                <span className="text-default-400 text-small">₹</span>
+              </div>
+            }
+          />
 
           <div className="mb-4 col-span-2">
-            <label className="block text-gray-700">Product Images</label>
-            <input
+            <Input
               type="file"
-              multiple
               onChange={handleImageChange}
-              className="border border-gray-300 p-3 w-full rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              multiple
+              label="Add Product Images"
+              variant="bordered"
+              className="max-w-xs"
+              required
             />
             {images.length > 0 && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

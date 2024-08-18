@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../api/axiosInstance";
 import toast from "react-hot-toast";
@@ -5,18 +6,20 @@ import toast from "react-hot-toast";
 export const useOrder = () => {
   const queryClient = useQueryClient();
 
-  const getOrders = () =>
+  const getOrders = ({ page = 1, limit = 10, startDate, endDate } = {}) =>
     useQuery({
-      queryKey: ["orders"], // Unique identifier for the orders query
+      queryKey: ["orders", { page, limit, startDate, endDate }],
       queryFn: async () => {
-        const { data } = await axiosInstance.get("/orders");
+        const { data } = await axiosInstance.get("/orders", {
+          params: { page, limit, startDate, endDate },
+        });
         return data;
       },
     });
 
   const getOrderById = (orderId) =>
     useQuery({
-      queryKey: ["order", orderId], // Unique identifier for a single order query
+      queryKey: ["order", orderId],
       queryFn: async () => {
         const { data } = await axiosInstance.get(`/orders/${orderId}`);
         return data;
@@ -30,7 +33,7 @@ export const useOrder = () => {
         return data;
       },
       onSuccess: () => {
-        queryClient.invalidateQueries(["orders"]); // Invalidate the orders query to refetch
+        queryClient.invalidateQueries(["orders"]);
         toast.success("Order created successfully");
       },
       onError: () => {
@@ -47,7 +50,7 @@ export const useOrder = () => {
         return data;
       },
       onSuccess: () => {
-        queryClient.invalidateQueries(["orders"]); // Invalidate the orders query to refetch
+        queryClient.invalidateQueries(["orders"]);
         toast.success("Order status updated");
       },
       onError: () => {
@@ -61,14 +64,14 @@ export const useOrder = () => {
         await axiosInstance.delete(`/orders/${orderId}`);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries(["orders"]); // Invalidate the orders query to refetch
+        queryClient.invalidateQueries(["orders"]);
         toast.success("Order deleted successfully");
       },
       onError: () => {
         toast.error("Error deleting order");
       },
     });
-  // Fetch orders by user email or username
+
   const getOrdersByUserEmailOrName = (emailOrName) =>
     useQuery({
       queryKey: ["orders", emailOrName],

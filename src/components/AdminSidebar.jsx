@@ -23,7 +23,8 @@ export default function AdminSidebar() {
     { name: "Categories", path: "/categories" },
     { name: "Brands", path: "/brands" },
     { name: "Users List", path: "/users-list" },
-    { name: "orders List", path: "/orders-list" },
+    { name: "Orders", path: "/admin/orders" },
+    { name: "Orders Dashboard", path: "/admin/orders-summary" },
   ];
 
   const onLogout = () => {

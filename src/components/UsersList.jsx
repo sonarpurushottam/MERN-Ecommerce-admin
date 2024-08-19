@@ -1,27 +1,27 @@
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { useUsers } from "../hooks/useUsers";
-import { useDeleteUser } from "../hooks/useDeleteUser";
+// import { useDeleteUser } from "../hooks/useDeleteUser";
 import toast, { Toaster } from "react-hot-toast";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+// import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 const UsersList = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { data: users = [], isError, isLoading } = useUsers();
-  const { mutate: deleteUser, isLoading: isDeleting } = useDeleteUser();
+  // const { mutate: deleteUser, isLoading: isDeleting } = useDeleteUser();
 
   if (isError) {
     toast.error("Failed to fetch users.");
   }
 
-  const handleDelete = (userId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      deleteUser(userId);
-    }
-  };
+  // const handleDelete = (userId) => {
+  //   if (window.confirm("Are you sure you want to delete this user?")) {
+  //     deleteUser(userId);
+  //   }
+  // };
 
-  const handleEdit = (userId) => {
-    navigate(`/edit-user/${userId}`);
-  };
+  // const handleEdit = (userId) => {
+  //   navigate(`/edit-user/${userId}`);
+  // };
 
   return (
     <div className="container mx-auto p-4">
@@ -38,7 +38,7 @@ const UsersList = () => {
                 <th className="px-4 py-2 text-left">Email</th>
                 <th className="px-4 py-2 text-left">Mobile</th>
                 <th className="px-4 py-2 text-left">Role</th>
-                <th className="px-4 py-2 text-left">Actions</th>
+                {/* <th className="px-4 py-2 text-left">Actions</th> */}
               </tr>
             </thead>
             <tbody>
@@ -56,7 +56,7 @@ const UsersList = () => {
                   <td className="px-4 py-2 border-b border-gray-300">
                     {user.role}
                   </td>
-                  <td className="px-4 py-2 border-b border-gray-300 flex items-center space-x-2">
+                  {/* <td className="px-4 py-2 border-b border-gray-300 flex items-center space-x-2">
                     <button
                       onClick={() => handleEdit(user._id)}
                       className="text-blue-500 hover:text-blue-700 transition duration-150 ease-in-out"
@@ -70,7 +70,7 @@ const UsersList = () => {
                     >
                       <FiTrash2 />
                     </button>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

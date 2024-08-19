@@ -13,13 +13,11 @@ import UploadProduct from "./components/UploadProduct";
 import CategoriesManager from "./components/CategoriesManager";
 import AdminSidebar from "./components/AdminSidebar";
 import UsersList from "./components/UsersList";
-import OrderList from "./components/OrderList";
-import OrderDetails from "./components/OrderDetails";
-import OrderSummaryDashboard from "./components/OrderSummaryDashboard";
-
 import BrandManager from "./components/BrandManager";
 import "./App.css";
 import UserProfile from "./components/UserProfile";
+import AdminOrders from "./components/AdminOrders";
+import OrderSummaryDashboard from "./components/OrderSummaryDashboard";
 
 const App = () => {
   return (
@@ -46,10 +44,13 @@ const MainContent = () => {
           <Route path="/brands" element={<BrandManager />} />
           <Route path="/users-list" element={<UsersList />} />
           <Route path="/product/edit/:id" element={<EditProduct />} />
-          <Route path="/orders-list" element={<OrderList />} />
-        <Route path="/orders/:id" element={<OrderDetails />} />
-        <Route path="/orders-dashboard" element={<OrderSummaryDashboard />} />
+
           <Route path="/edit-profile" element={<UserProfile />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route
+            path="/admin/orders-summary"
+            element={<OrderSummaryDashboard />}
+          />
           <Route
             path="/admin-dashboard"
             element={

@@ -30,7 +30,8 @@ const Login = () => {
 
     login({ emailOrMobile, password });
   };
-
+  console.log(localStorage.getItem("role")); // Should log the role if stored correctly
+  console.log(localStorage.getItem("token"));
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Toaster />

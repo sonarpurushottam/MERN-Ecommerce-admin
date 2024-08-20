@@ -1,4 +1,3 @@
-
 import { useOrders } from "../hooks/useOrders";
 import { motion } from "framer-motion";
 import ReactApexChart from "react-apexcharts";
@@ -318,138 +317,136 @@ const OrderSummaryDashboard = () => {
               <CardContent>
                 <Typography variant="h6">Average Order Value</Typography>
                 <Typography variant="h4">
-                ₹{averageOrderValue.toFixed(2)}
+                  ₹{averageOrderValue.toFixed(2)}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3
-}>
-<Card>
+          <Grid item xs={12} sm={6} md={3}>
+            {/* <Card>
 <CardContent>
 <Typography variant="h6">Unique Customers</Typography>
 <Typography variant="h4">{uniqueCustomers}</Typography>
 </CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={6} md={3}>
-<Card>
-<CardContent>
-<Typography variant="h6">Average Spend per Customer</Typography>
-<Typography variant="h4">₹{averageCustomerSpend.toFixed(2)}
-</Typography>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Orders by Date</Typography>
-<ReactApexChart
-options={orderByDateOptions}
-series={[{ name: "Orders", data: orderCounts }]}
-type="line"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Orders by Hour</Typography>
-<ReactApexChart
-options={ordersByHourOptions}
-series={[{ name: "Orders", data: hourCounts }]}
-type="bar"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Monthly Order Summary</Typography>
-<ReactApexChart
-options={monthlySummaryOptions}
-series={[
-{ name: "Orders", data: monthlyOrderCounts },
-{ name: "Revenue", data: monthlyRevenue },
-]}
-type="line"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Top Products</Typography>
-<ReactApexChart
-options={topProductsOptions}
-series={[
-{
-name: "Quantity Sold",
-data: topProducts.map(([_, qty]) => qty),
-},
-]}
-type="bar"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">
-Payment Method Distribution
-</Typography>
-<ReactApexChart
-               options={paymentMethodOptions}
-               series={paymentMethodSeries}
-               type="pie"
-               width="100%"
-             />
-</CardContent>
-</Card>
-</Grid>
-
-php
-Copy code
-      {/* Additional Charts */}
-      <Grid item xs={12} sm={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Order Status Distribution</Typography>
-            <ReactApexChart
-              options={orderStatusOptions}
-              series={Object.values(statusCounts)}
-              type="pie"
-              width="100%"
-            />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12} sm={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Revenue Breakdown</Typography>
-            <ReactApexChart
-              options={revenueBreakdownOptions}
-              series={monthlyRevenue}
-              type="donut"
-              width="100%"
-            />
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  </Container>
-</motion.div>
-);
+</Card> */}
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Average Spend per Customer</Typography>
+                <Typography variant="h4">
+                  ₹{averageCustomerSpend.toFixed(2)}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Orders by Date</Typography>
+                <ReactApexChart
+                  options={orderByDateOptions}
+                  series={[{ name: "Orders", data: orderCounts }]}
+                  type="line"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Orders by Hour</Typography>
+                <ReactApexChart
+                  options={ordersByHourOptions}
+                  series={[{ name: "Orders", data: hourCounts }]}
+                  type="bar"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Monthly Order Summary</Typography>
+                <ReactApexChart
+                  options={monthlySummaryOptions}
+                  series={[
+                    { name: "Orders", data: monthlyOrderCounts },
+                    { name: "Revenue", data: monthlyRevenue },
+                  ]}
+                  type="line"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Top Products</Typography>
+                <ReactApexChart
+                  options={topProductsOptions}
+                  series={[
+                    {
+                      name: "Quantity Sold",
+                      data: topProducts.map(([_, qty]) => qty),
+                    },
+                  ]}
+                  type="bar"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">
+                  Payment Method Distribution
+                </Typography>
+                <ReactApexChart
+                  options={paymentMethodOptions}
+                  series={paymentMethodSeries}
+                  type="pie"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          php Copy code
+          {/* Additional Charts */}
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Order Status Distribution</Typography>
+                <ReactApexChart
+                  options={orderStatusOptions}
+                  series={Object.values(statusCounts)}
+                  type="pie"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">Revenue Breakdown</Typography>
+                <ReactApexChart
+                  options={revenueBreakdownOptions}
+                  series={monthlyRevenue}
+                  type="donut"
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Container>
+    </motion.div>
+  );
 };
 
 export default OrderSummaryDashboard;

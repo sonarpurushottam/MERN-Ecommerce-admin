@@ -196,7 +196,7 @@ const OrderSummaryDashboard = () => {
     },
     tooltip: {
       y: {
-        formatter: (val) => `$${val.toFixed(2)}`,
+        formatter: (val) => `${val.toFixed(2)}`,
       },
     },
   };
@@ -279,7 +279,7 @@ const OrderSummaryDashboard = () => {
     },
     tooltip: {
       y: {
-        formatter: (val) => `$${val.toFixed(2)}`,
+        formatter: (val) => `₹${val.toFixed(2)}`,
       },
     },
   };
@@ -309,7 +309,7 @@ const OrderSummaryDashboard = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6">Total Spent</Typography>
-                <Typography variant="h4">${totalSpent.toFixed(2)}</Typography>
+                <Typography variant="h4">₹{totalSpent.toFixed(2)}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -318,7 +318,7 @@ const OrderSummaryDashboard = () => {
               <CardContent>
                 <Typography variant="h6">Average Order Value</Typography>
                 <Typography variant="h4">
-                  ${averageOrderValue.toFixed(2)}
+                ₹{averageOrderValue.toFixed(2)}
                 </Typography>
               </CardContent>
             </Card>
@@ -336,8 +336,7 @@ const OrderSummaryDashboard = () => {
 <Card>
 <CardContent>
 <Typography variant="h6">Average Spend per Customer</Typography>
-<Typography variant="h4">
-${averageCustomerSpend.toFixed(2)}
+<Typography variant="h4">₹{averageCustomerSpend.toFixed(2)}
 </Typography>
 </CardContent>
 </Card>

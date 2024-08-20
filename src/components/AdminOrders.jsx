@@ -167,7 +167,7 @@ const AdminOrders = () => {
                     <MenuItem value="Cancelled">Cancelled</MenuItem>
                   </Select>
                 </TableCell>
-                <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+                <TableCell>₹{order.totalAmount.toFixed(2)}</TableCell>
                 <TableCell>
                   <Button
                     variant="contained"
@@ -200,7 +200,7 @@ const AdminOrders = () => {
               <Typography variant="h6">Order ID: {selectedOrder._id}</Typography>
               <Typography>User: {selectedOrder.userId.username}</Typography>
               <Typography>Status: {selectedOrder.status}</Typography>
-              <Typography>Total Amount: ${selectedOrder.totalAmount.toFixed(2)}</Typography>
+              <Typography>Total Amount: ₹{selectedOrder.totalAmount.toFixed(2)}</Typography>
               <Typography>Shipping Address: {selectedOrder.shippingAddress}</Typography>
               <Typography>Billing Address: {selectedOrder.billingAddress}</Typography>
               <Typography>Payment Method: {selectedOrder.paymentMethod}</Typography>
@@ -212,7 +212,7 @@ const AdminOrders = () => {
                     <li key={index}>
                       <Typography>Product: {item.productId.name}</Typography>
                       <Typography>Quantity: {item.quantity}</Typography>
-                      <Typography>Price: ${item.productId.price.toFixed(2)}</Typography>
+                      <Typography>Price: ₹{item.productId.price.toFixed(2)}</Typography>
                     </li>
                   ))}
                 </ul>

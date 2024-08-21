@@ -6,6 +6,7 @@ export const useOrders = (filters) => {
     queryKey: ["orders", filters],
     queryFn: async () => {
       const { data } = await axiosInstance.get("/orders", { params: filters });
+     
       return data;
     },
   });
@@ -49,19 +50,3 @@ export const useDeleteOrder = () => {
     },
   });
 };
-// Custom hook for deleting an order
-// export const useDeleteOrder = () => {
-//   return useMutation({
-//     mutationFn: async (orderId) => {
-//       const { data } = await axiosInstance.delete(`/orders/${orderId}`);
-//       return data;
-//     },
-//     onError: (error) => {
-//       console.error('Error deleting order:', error.response?.data?.message || error.message);
-//     },
-//     onSuccess: () => {
-//       // Optionally handle any success logic here, like invalidating queries
-//       console.log('Order deleted successfully');
-//     },
-//   });
-// };

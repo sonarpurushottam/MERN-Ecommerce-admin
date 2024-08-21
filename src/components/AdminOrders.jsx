@@ -192,19 +192,42 @@ const AdminOrders = () => {
       </TableContainer>
 
       {/* Order Details Modal */}
-      <Dialog open={openDetails} onClose={handleCloseDetails} fullWidth maxWidth="md">
+      <Dialog
+        open={openDetails}
+        onClose={handleCloseDetails}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>Order Details</DialogTitle>
         <DialogContent>
           {selectedOrder && (
             <div>
-              <Typography variant="h6">Order ID: {selectedOrder._id}</Typography>
+              <Typography variant="h6">
+                Order ID: {selectedOrder._id}
+              </Typography>
               <Typography>User: {selectedOrder.userId.username}</Typography>
               <Typography>Status: {selectedOrder.status}</Typography>
-              <Typography>Total Amount: ₹{selectedOrder.totalAmount.toFixed(2)}</Typography>
-              <Typography>Shipping Address: {selectedOrder.shippingAddress}</Typography>
-              <Typography>Billing Address: {selectedOrder.billingAddress}</Typography>
-              <Typography>Payment Method: {selectedOrder.paymentMethod}</Typography>
-              <Typography>Tracking Information: {selectedOrder.trackingInfo}</Typography>
+              <Typography>
+                Total Amount: ₹{selectedOrder.totalAmount.toFixed(2)}
+              </Typography>
+              
+              <Typography variant="h6">Shipping Address:</Typography>
+              <Typography>{selectedOrder.shippingAddress?.street}</Typography>
+              <Typography>
+                {selectedOrder.shippingAddress?.city}{" "}
+                {selectedOrder.shippingAddress?.state}{" "}
+                {selectedOrder.shippingAddress?.postalCode}
+              </Typography>
+              <Typography>{selectedOrder.shippingAddress?.country}</Typography>
+              {/* <Typography>
+                Billing Address: {selectedOrder.billingAddress}
+              </Typography>
+              <Typography>
+                Payment Method: {selectedOrder.paymentMethod}
+              </Typography>
+              <Typography>
+                Tracking Information: {selectedOrder.trackingInfo}
+              </Typography> */}
               <Typography variant="h6">Items:</Typography>
               {selectedOrder.items && selectedOrder.items.length > 0 ? (
                 <ul>
@@ -212,7 +235,9 @@ const AdminOrders = () => {
                     <li key={index}>
                       <Typography>Product: {item.productId.name}</Typography>
                       <Typography>Quantity: {item.quantity}</Typography>
-                      <Typography>Price: ₹{item.productId.price.toFixed(2)}</Typography>
+                      <Typography>
+                        Price: ₹{item.productId.price.toFixed(2)}
+                      </Typography>
                     </li>
                   ))}
                 </ul>

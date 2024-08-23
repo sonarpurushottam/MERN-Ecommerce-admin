@@ -2,15 +2,12 @@ import { useState } from "react";
 import { useLogin } from "../hooks/useLogin";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
 const Login = () => {
   const [emailOrMobile, setEmailOrMobile] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const { login, isLoading } = useLogin();
-
-  const validateEmailOrMobile = (input) =>
+ const validateEmailOrMobile = (input) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || /^[0-9]{10}$/.test(input);
 
   const validatePassword = (password) => password.length >= 6;
@@ -30,8 +27,12 @@ const Login = () => {
 
     login({ emailOrMobile, password });
   };
-  console.log(localStorage.getItem("role")); // Should log the role if stored correctly
-  console.log(localStorage.getItem("token"));
+
+  const handleDemoLogin = () => {
+    setEmailOrMobile("demo@viewer.com"); // Set default email for demo viewer
+    setPassword("DemoPassword123"); // Set default password for demo viewer
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Toaster />
@@ -85,7 +86,6 @@ const Login = () => {
               {isLoading ? "Logging in..." : "Login"}
             </button>
           </div>
-          {/* Optional Forgot Password */}
           <div className="text-sm text-center mt-4">
             <a
               href="/forgot-password"
@@ -93,6 +93,25 @@ const Login = () => {
             >
               Forgot Password?
             </a>
+          </div>
+          <div className="text-sm text-center mt-4">
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="text-blue-500 hover:underline"
+            >
+              Login as Demo
+            </button>
+          </div>
+          <div className="text-sm text-center mt-4">
+            <p className="text-gray-600">
+              Anyone can view the project as a demo viewer but
+              <strong> you can't change the data</strong>
+              <br />
+              <h3> Use the credentials:</h3>
+              <strong>Email:</strong> demo@viewer.com <br />
+              <strong>Password:</strong> DemoPassword123
+            </p>
           </div>
         </form>
       </div>

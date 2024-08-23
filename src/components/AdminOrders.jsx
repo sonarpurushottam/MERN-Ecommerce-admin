@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import {
@@ -88,10 +89,10 @@ const AdminOrders = () => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const filteredOrders =
-    orders?.filter((order) =>
-      order.userId.username.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || [];
+  const filteredOrders = orders?.filter((order) =>
+    order.userId && order.userId.username &&
+    order.userId.username.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   const handleOpenDetails = (order) => {
     setSelectedOrder(order);
@@ -151,7 +152,7 @@ const AdminOrders = () => {
             {filteredOrders.map((order) => (
               <TableRow key={order._id}>
                 <TableCell>{order._id}</TableCell>
-                <TableCell>{order.userId.username}</TableCell>
+                <TableCell>{order.userId ? order.userId.username : 'Unknown User'}</TableCell>
                 <TableCell>
                   <Select
                     value={order.status}
@@ -205,7 +206,7 @@ const AdminOrders = () => {
               <Typography variant="h6">
                 Order ID: {selectedOrder._id}
               </Typography>
-              <Typography>User: {selectedOrder.userId.username}</Typography>
+              <Typography>User: {selectedOrder.userId ? selectedOrder.userId.username : 'Unknown User'}</Typography>
               <Typography>Status: {selectedOrder.status}</Typography>
               <Typography>
                 Total Amount: ₹{selectedOrder.totalAmount.toFixed(2)}

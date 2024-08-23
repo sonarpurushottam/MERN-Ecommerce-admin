@@ -20,7 +20,7 @@ import AdminOrders from "./components/AdminOrders";
 import OrderSummaryDashboard from "./components/OrderSummaryDashboard";
 
 const App = () => {
-  return (
+    return (
     <Router>
       <MainContent />
     </Router>

@@ -19,11 +19,14 @@ export const useLogin = () => {
     mutationFn: loginUser,
     onSuccess: (data) => {
       const { token, role } = data;
-      if (role === "admin" || role === "superadmin") {
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
 
+      if (role === "admin" || role === "superadmin") {
         navigate(role === "superadmin" ? "/super-admin" : "/admin-dashboard");
+        toast.success("Login successful!");
+      } else if (role === "viewer") {
+        navigate("/admin-dashboard");
         toast.success("Login successful!");
       } else {
         toast.error("Unauthorized");

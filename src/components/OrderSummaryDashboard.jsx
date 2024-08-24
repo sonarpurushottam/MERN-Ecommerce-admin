@@ -4,14 +4,11 @@ import ReactApexChart from "react-apexcharts";
 import { Container, Typography, Grid, Card, CardContent } from "@mui/material";
 import dayjs from "dayjs";
 
-// OrderSummaryDashboard Component
 const OrderSummaryDashboard = () => {
   const { data: orders = [] } = useOrders();
-
   // Calculate total orders and total spent
   const totalOrders = orders.length;
   const totalSpent = orders.reduce((acc, order) => acc + order.totalAmount, 0);
-  const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
 
   // Calculate status counts
   const statusCounts = orders.reduce((acc, order) => {
@@ -66,44 +63,7 @@ const OrderSummaryDashboard = () => {
   const topProducts = Object.entries(productCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
-
-  // Calculate payment method distribution
-  const paymentMethodCounts = orders.reduce((acc, order) => {
-    acc[order.paymentMethod] = (acc[order.paymentMethod] || 0) + 1;
-    return acc;
-  }, {});
-
-  const paymentMethods = Object.keys(paymentMethodCounts);
-  const paymentMethodSeries = Object.values(paymentMethodCounts);
-
-  // Calculate unique customers and average spend
-  const uniqueCustomers = new Set(orders.map((order) => order.userId.username))
-    .size;
-  const averageCustomerSpend =
-    uniqueCustomers > 0 ? totalSpent / uniqueCustomers : 0;
-
   // Chart options
-  const chartOptions = {
-    chart: {
-      type: "pie",
-    },
-    labels: Object.keys(statusCounts),
-    colors: ["#FF4560", "#00E396", "#008FFB", "#FEB019", "#FF66C3"],
-    legend: {
-      position: "bottom",
-    },
-    plotOptions: {
-      pie: {
-        expandOnClick: true,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} orders`,
-      },
-    },
-  };
-
   const orderByDateOptions = {
     chart: {
       type: "line",
@@ -231,43 +191,16 @@ const OrderSummaryDashboard = () => {
     },
   };
 
-  const paymentMethodOptions = {
-    ...chartOptions,
-    labels: paymentMethods,
-    title: {
-      text: "Payment Method Distribution",
-      align: "left",
-    },
-  };
-
-  // New Chart Options for Additional Features
-  const orderStatusOptions = {
-    chart: {
-      type: "pie",
-    },
-    labels: Object.keys(statusCounts),
-    colors: ["#FF4560", "#00E396", "#008FFB", "#FEB019", "#FF66C3"],
-    legend: {
-      position: "bottom",
-    },
-    plotOptions: {
-      pie: {
-        expandOnClick: true,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} orders`,
-      },
-    },
-  };
-
-  const revenueBreakdownOptions = {
+  const orderStatusDistribution = {
     chart: {
       type: "donut",
     },
+    title: {
+      text: "Order Status Distribution",
+      align: "left",
+    },
     labels: Object.keys(statusCounts),
-    colors: ["#FF4560", "#00E396", "#008FFB", "#FEB019", "#FF66C3"],
+    colors: ['#00E396', '#008FFB', '#FEB019', '#FF4560'],
     legend: {
       position: "bottom",
     },
@@ -278,7 +211,7 @@ const OrderSummaryDashboard = () => {
     },
     tooltip: {
       y: {
-        formatter: (val) => `₹${val.toFixed(2)}`,
+        formatter: (val) => `${val.toFixed(2)}`,
       },
     },
   };
@@ -312,136 +245,61 @@ const OrderSummaryDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Average Order Value</Typography>
-                <Typography variant="h4">
-                  ₹{averageOrderValue.toFixed(2)}
-                </Typography>
-              </CardContent>
-            </Card>
+        </Grid>
+
+        <Grid container spacing={3} className="mt-4">
+          <Grid item xs={12} md={6}>
+            <ReactApexChart
+              options={orderByDateOptions}
+              series={[{ name: "Orders", data: orderCounts }]}
+              type="line"
+              height={350}
+            />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            {/* <Card>
-<CardContent>
-<Typography variant="h6">Unique Customers</Typography>
-<Typography variant="h4">{uniqueCustomers}</Typography>
-</CardContent>
-</Card> */}
+          <Grid item xs={12} md={6}>
+            <ReactApexChart
+              options={ordersByHourOptions}
+              series={[{ name: "Orders", data: hourCounts }]}
+              type="bar"
+              height={350}
+            />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Average Spend per Customer</Typography>
-                <Typography variant="h4">
-                  ₹{averageCustomerSpend.toFixed(2)}
-                </Typography>
-              </CardContent>
-            </Card>
+        </Grid>
+
+        <Grid container spacing={3} className="mt-4">
+          <Grid item xs={12} md={6}>
+            <ReactApexChart
+              options={monthlySummaryOptions}
+              series={[
+                { name: "Orders", data: monthlyOrderCounts },
+                { name: "Revenue", data: monthlyRevenue },
+              ]}
+              type="line"
+              height={350}
+            />
           </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Orders by Date</Typography>
-                <ReactApexChart
-                  options={orderByDateOptions}
-                  series={[{ name: "Orders", data: orderCounts }]}
-                  type="line"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
+          <Grid item xs={12} md={6}>
+            <ReactApexChart
+              options={topProductsOptions}
+              series={[
+                {
+                  name: "Quantity Sold",
+                  data: topProducts.map(([, count]) => count),
+                },
+              ]}
+              type="bar"
+              height={350}
+            />
           </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Orders by Hour</Typography>
-                <ReactApexChart
-                  options={ordersByHourOptions}
-                  series={[{ name: "Orders", data: hourCounts }]}
-                  type="bar"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Monthly Order Summary</Typography>
-                <ReactApexChart
-                  options={monthlySummaryOptions}
-                  series={[
-                    { name: "Orders", data: monthlyOrderCounts },
-                    { name: "Revenue", data: monthlyRevenue },
-                  ]}
-                  type="line"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Top Products</Typography>
-                <ReactApexChart
-                  options={topProductsOptions}
-                  series={[
-                    {
-                      name: "Quantity Sold",
-                      data: topProducts.map(([_, qty]) => qty),
-                    },
-                  ]}
-                  type="bar"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">
-                  Payment Method Distribution
-                </Typography>
-                <ReactApexChart
-                  options={paymentMethodOptions}
-                  series={paymentMethodSeries}
-                  type="pie"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-          php Copy code
-          {/* Additional Charts */}
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Order Status Distribution</Typography>
-                <ReactApexChart
-                  options={orderStatusOptions}
-                  series={Object.values(statusCounts)}
-                  type="pie"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Revenue Breakdown</Typography>
-                <ReactApexChart
-                  options={revenueBreakdownOptions}
-                  series={monthlyRevenue}
-                  type="donut"
-                  width="100%"
-                />
-              </CardContent>
-            </Card>
+        </Grid>
+        <Grid container spacing={3} className="mt-4">
+          <Grid item xs={12} md={6}>
+            <ReactApexChart
+              options={orderStatusDistribution}
+              series={Object.values(statusCounts)}
+              type="donut"
+              height={350}
+            />
           </Grid>
         </Grid>
       </Container>

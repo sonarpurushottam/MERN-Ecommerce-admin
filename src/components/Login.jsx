@@ -7,7 +7,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading } = useLogin();
- const validateEmailOrMobile = (input) =>
+  const validateEmailOrMobile = (input) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || /^[0-9]{10}$/.test(input);
 
   const validatePassword = (password) => password.length >= 6;
@@ -37,7 +37,10 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Toaster />
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md mx-auto">
-        <h2 className="text-3xl font-semibold mb-6 text-center">Login</h2>
+        <h2 className="text-3xl font-semibold mb-6 text-center">
+          {" "}
+          Admin Login
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-2">
@@ -86,31 +89,29 @@ const Login = () => {
               {isLoading ? "Logging in..." : "Login"}
             </button>
           </div>
-          <div className="text-sm text-center mt-4">
+          {/* <div className="text-sm text-center mt-4">
             <a
               href="/forgot-password"
               className="text-blue-500 hover:underline"
             >
               Forgot Password?
             </a>
-          </div>
-          <div className="text-sm text-center mt-4">
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="text-blue-500 hover:underline"
-            >
-              Login as Demo
-            </button>
-          </div>
+          </div> */}
+
           <div className="text-sm text-center mt-4">
             <p className="text-gray-600">
               Anyone can view the project as a demo viewer but
-              <strong> you can't change the data</strong>
+              <strong> you cannot change the data</strong>
               <br />
-              <h3> Use the credentials:</h3>
-              <strong>Email:</strong> demo@viewer.com <br />
-              <strong>Password:</strong> DemoPassword123
+              <div className="text-sm text-center mt-4">
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  className="text-blue-500 hover:underline"
+                >
+                  Click here to Login as Demo
+                </button>
+              </div>
             </p>
           </div>
         </form>

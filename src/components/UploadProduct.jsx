@@ -14,7 +14,9 @@ const UploadProduct = () => {
   const [price, setPrice] = useState("");
   const [images, setImages] = useState([]);
 
-  const { data, error: fetchError } = useFetchCategoriesAndBrands();
+  // Pass category to fetch brands
+  const { categoriesQuery, brandsQuery } = useFetchCategoriesAndBrands(category);
+
   const {
     mutate: uploadProduct,
     isLoading,
@@ -71,29 +73,19 @@ const UploadProduct = () => {
         <FaUpload className="text-blue-500" /> Add Product
       </motion.h1>
 
-      {fetchError && (
+      {(categoriesQuery.isError || brandsQuery.isError) && (
         <motion.div
           className="text-red-500 mb-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          {fetchError.message}
-        </motion.div>
-      )}
-      {isError && (
-        <motion.div
-          className="text-red-500 mb-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {error.message}
+          {categoriesQuery.error?.message || brandsQuery.error?.message}
         </motion.div>
       )}
 
       <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div className="mb-4 ">
+        <div className="mb-4">
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -104,7 +96,7 @@ const UploadProduct = () => {
             required
           />
 
-          <div className="mb-4 pt-4 ">
+          <div className="mb-4 pt-4">
             <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -114,7 +106,7 @@ const UploadProduct = () => {
               className="max-w-xs"
               variant="bordered"
             >
-              {data?.categories.map((category) => (
+              {categoriesQuery.data?.map((category) => (
                 <SelectItem
                   key={category._id}
                   value={category._id}
@@ -136,41 +128,40 @@ const UploadProduct = () => {
             </Select>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="mb-4">
-              <Select
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                label="Brand"
-                placeholder="Select a Brand"
-                labelPlacement="outside"
-                className="max-w-xs"
-                variant="bordered"
-              >
-                {data?.brands.map((brand) => (
-                  <SelectItem
-                    key={brand._id}
-                    value={brand._id}
-                    textValue={brand.name}
-                  >
-                    <div className="flex gap-2 items-center">
-                      <Avatar
-                        alt={brand.name}
-                        className="flex-shrink-0"
-                        size="sm"
-                        src={brand.image}
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-small">{brand.name}</span>
-                      </div>
+          <div className="mb-4">
+            <Select
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              label="Brand"
+              placeholder="Select a Brand"
+              labelPlacement="outside"
+              className="max-w-xs"
+              variant="bordered"
+              disabled={!category} // Disable until a category is selected
+            >
+              {brandsQuery.data?.map((brand) => (
+                <SelectItem
+                  key={brand._id}
+                  value={brand._id}
+                  textValue={brand.name}
+                >
+                  <div className="flex gap-2 items-center">
+                    <Avatar
+                      alt={brand.name}
+                      className="flex-shrink-0"
+                      size="sm"
+                      src={brand.image}
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-small">{brand.name}</span>
                     </div>
-                  </SelectItem>
-                ))}
-              </Select>
-            </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </Select>
           </div>
 
-          <div className="mb-4 col-span-2">
+          <div className="mb-4">
             <Textarea
               label="Description"
               placeholder="Enter your description"
@@ -198,7 +189,7 @@ const UploadProduct = () => {
             }
           />
 
-          <div className="mb-4 col-span-2">
+          <div className="mb-4">
             <Input
               type="file"
               onChange={handleImageChange}

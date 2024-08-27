@@ -1,456 +1,254 @@
-
-import { useOrders } from "../hooks/useOrders";
+import { useState } from "react";
+import { useFetchCategoriesAndBrands } from "../hooks/useFetchCategoriesAndBrands";
+import { useUploadProduct } from "../hooks/useUploadProduct";
 import { motion } from "framer-motion";
-import ReactApexChart from "react-apexcharts";
-import { Container, Typography, Grid, Card, CardContent } from "@mui/material";
-import dayjs from "dayjs";
+import { FaUpload, FaTrashAlt } from "react-icons/fa";
+import { toast } from "react-hot-toast";
+import { Input, Select, SelectItem, Avatar, Textarea } from "@nextui-org/react";
 
-// OrderSummaryDashboard Component
-const OrderSummaryDashboard = () => {
-  const { data: orders = [] } = useOrders();
+const UploadProduct = () => {
+  const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [images, setImages] = useState([]);
 
-  // Calculate total orders and total spent
-  const totalOrders = orders.length;
-  const totalSpent = orders.reduce((acc, order) => acc + order.totalAmount, 0);
-  const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+  const { data, error: fetchError } = useFetchCategoriesAndBrands();
+  const {
+    mutate: uploadProduct,
+    isLoading,
+    isError,
+    error,
+  } = useUploadProduct();
 
-  // Calculate status counts
-  const statusCounts = orders.reduce((acc, order) => {
-    acc[order.status] = (acc[order.status] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Calculate orders by date
-  const ordersByDate = orders.reduce((acc, order) => {
-    const date = dayjs(order.createdAt).format("YYYY-MM-DD");
-    acc[date] = (acc[date] || 0) + 1;
-    return acc;
-  }, {});
-
-  const dates = Object.keys(ordersByDate);
-  const orderCounts = Object.values(ordersByDate);
-
-  // Calculate orders by hour
-  const ordersByHour = orders.reduce((acc, order) => {
-    const hour = dayjs(order.createdAt).hour();
-    acc[hour] = (acc[hour] || 0) + 1;
-    return acc;
-  }, {});
-
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const hourCounts = hours.map((hour) => ordersByHour[hour] || 0);
-
-  // Calculate monthly summary
-  const ordersByMonth = orders.reduce((acc, order) => {
-    const month = dayjs(order.createdAt).format("YYYY-MM");
-    acc[month] = (acc[month] || 0) + 1;
-    return acc;
-  }, {});
-
-  const months = Object.keys(ordersByMonth);
-  const monthlyOrderCounts = Object.values(ordersByMonth);
-  const monthlyRevenue = months.map((month) => {
-    return orders
-      .filter((order) => dayjs(order.createdAt).format("YYYY-MM") === month)
-      .reduce((acc, order) => acc + order.totalAmount, 0);
-  });
-
-  // Calculate top products
-  const productCounts = orders
-    .flatMap((order) => order.items)
-    .reduce((acc, item) => {
-      acc[item.productId.name] =
-        (acc[item.productId.name] || 0) + item.quantity;
-      return acc;
-    }, {});
-
-  const topProducts = Object.entries(productCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  // Calculate payment method distribution
-  const paymentMethodCounts = orders.reduce((acc, order) => {
-    acc[order.paymentMethod] = (acc[order.paymentMethod] || 0) + 1;
-    return acc;
-  }, {});
-
-  const paymentMethods = Object.keys(paymentMethodCounts);
-  const paymentMethodSeries = Object.values(paymentMethodCounts);
-
-  // Calculate unique customers and average spend
-  const uniqueCustomers = new Set(orders.map((order) => order.userId.username))
-    .size;
-  const averageCustomerSpend =
-    uniqueCustomers > 0 ? totalSpent / uniqueCustomers : 0;
-
-  // Chart options
-  const chartOptions = {
-    chart: {
-      type: "pie",
-    },
-    labels: Object.keys(statusCounts),
-    colors: ["#FF4560", "#00E396", "#008FFB", "#FEB019", "#FF66C3"],
-    legend: {
-      position: "bottom",
-    },
-    plotOptions: {
-      pie: {
-        expandOnClick: true,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} orders`,
-      },
-    },
+  const handleImageChange = (event) => {
+    setImages([...event.target.files]);
   };
 
-  const orderByDateOptions = {
-    chart: {
-      type: "line",
-      zoom: {
-        enabled: false,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      curve: "smooth",
-    },
-    title: {
-      text: "Orders by Date",
-      align: "left",
-    },
-    xaxis: {
-      categories: dates,
-      title: {
-        text: "Date",
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Number of Orders",
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} orders`,
-      },
-    },
+  const handleRemoveImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
-  const ordersByHourOptions = {
-    chart: {
-      type: "bar",
-    },
-    title: {
-      text: "Orders by Hour",
-      align: "left",
-    },
-    xaxis: {
-      categories: hours.map((hour) => `${hour}:00`),
-      title: {
-        text: "Hour of Day",
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Number of Orders",
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} orders`,
-      },
-    },
-  };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const monthlySummaryOptions = {
-    chart: {
-      type: "line",
-      zoom: {
-        enabled: false,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      curve: "smooth",
-    },
-    title: {
-      text: "Monthly Order Summary",
-      align: "left",
-    },
-    xaxis: {
-      categories: months,
-      title: {
-        text: "Month",
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Amount",
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `$${val.toFixed(2)}`,
-      },
-    },
-  };
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("brand", brand);
+    formData.append("category", category);
+    formData.append("description", description);
+    formData.append("price", price);
 
-  const topProductsOptions = {
-    chart: {
-      type: "bar",
-    },
-    title: {
-      text: "Top Products by Quantity Sold",
-      align: "left",
-    },
-    xaxis: {
-      categories: topProducts.map(([name]) => name),
-      title: {
-        text: "Product",
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Quantity Sold",
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: true,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} units`,
-      },
-    },
-  };
+    for (let i = 0; i < images.length; i++) {
+      formData.append("productImage", images[i]);
+    }
 
-  const paymentMethodOptions = {
-    ...chartOptions,
-    labels: paymentMethods,
-    title: {
-      text: "Payment Method Distribution",
-      align: "left",
-    },
-  };
-
-  // New Chart Options for Additional Features
-  const orderStatusOptions = {
-    chart: {
-      type: "pie",
-    },
-    labels: Object.keys(statusCounts),
-    colors: ["#FF4560", "#00E396", "#008FFB", "#FEB019", "#FF66C3"],
-    legend: {
-      position: "bottom",
-    },
-    plotOptions: {
-      pie: {
-        expandOnClick: true,
+    uploadProduct(formData, {
+      onSuccess: () => {
+        toast.success("Product uploaded successfully!");
+        setName("");
+        setBrand("");
+        setCategory("");
+        setDescription("");
+        setPrice("");
+        setImages([]);
       },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `${val} orders`,
+      onError: () => {
+        toast.error("Error uploading product. Please try again.");
       },
-    },
-  };
-
-  const revenueBreakdownOptions = {
-    chart: {
-      type: "donut",
-    },
-    labels: Object.keys(statusCounts),
-    colors: ["#FF4560", "#00E396", "#008FFB", "#FEB019", "#FF66C3"],
-    legend: {
-      position: "bottom",
-    },
-    plotOptions: {
-      pie: {
-        expandOnClick: true,
-      },
-    },
-    tooltip: {
-      y: {
-        formatter: (val) => `$${val.toFixed(2)}`,
-      },
-    },
+    });
   };
 
   return (
-    <motion.div
-      className="p-4 bg-white shadow rounded-lg"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Container>
-        <Typography variant="h4" gutterBottom>
-          Order Summary Dashboard
-        </Typography>
+    <div className="max-w-full mx-auto p-4 sm:p-6 bg-white shadow-lg rounded-lg border border-gray-200">
+      <motion.h1
+        className="text-2xl sm:text-3xl font-semibold mb-6 flex items-center gap-2"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <FaUpload className="text-blue-500" /> Add Product
+      </motion.h1>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Total Orders</Typography>
-                <Typography variant="h4">{totalOrders}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Total Spent</Typography>
-                <Typography variant="h4">${totalSpent.toFixed(2)}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Average Order Value</Typography>
-                <Typography variant="h4">
-                  ${averageOrderValue.toFixed(2)}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3
-}>
-<Card>
-<CardContent>
-<Typography variant="h6">Unique Customers</Typography>
-<Typography variant="h4">{uniqueCustomers}</Typography>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={6} md={3}>
-<Card>
-<CardContent>
-<Typography variant="h6">Average Spend per Customer</Typography>
-<Typography variant="h4">
-${averageCustomerSpend.toFixed(2)}
-</Typography>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Orders by Date</Typography>
-<ReactApexChart
-options={orderByDateOptions}
-series={[{ name: "Orders", data: orderCounts }]}
-type="line"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Orders by Hour</Typography>
-<ReactApexChart
-options={ordersByHourOptions}
-series={[{ name: "Orders", data: hourCounts }]}
-type="bar"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Monthly Order Summary</Typography>
-<ReactApexChart
-options={monthlySummaryOptions}
-series={[
-{ name: "Orders", data: monthlyOrderCounts },
-{ name: "Revenue", data: monthlyRevenue },
-]}
-type="line"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">Top Products</Typography>
-<ReactApexChart
-options={topProductsOptions}
-series={[
-{
-name: "Quantity Sold",
-data: topProducts.map(([_, qty]) => qty),
-},
-]}
-type="bar"
-width="100%"
-/>
-</CardContent>
-</Card>
-</Grid>
-<Grid item xs={12} sm={12} md={6}>
-<Card>
-<CardContent>
-<Typography variant="h6">
-Payment Method Distribution
-</Typography>
-<ReactApexChart
-               options={paymentMethodOptions}
-               series={paymentMethodSeries}
-               type="pie"
-               width="100%"
-             />
-</CardContent>
-</Card>
-</Grid>
+      {fetchError && (
+        <motion.div
+          className="text-red-500 mb-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {fetchError.message}
+        </motion.div>
+      )}
+      {isError && (
+        <motion.div
+          className="text-red-500 mb-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {error.message}
+        </motion.div>
+      )}
 
-php
-Copy code
-      {/* Additional Charts */}
-      <Grid item xs={12} sm={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Order Status Distribution</Typography>
-            <ReactApexChart
-              options={orderStatusOptions}
-              series={Object.values(statusCounts)}
-              type="pie"
-              width="100%"
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <div className="mb-4 ">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            type="text"
+            label="Product Name"
+            variant="bordered"
+            className="max-w-xs"
+            required
+          />
+
+          <div className="mb-4 pt-4 ">
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              label="Category"
+              placeholder="Select a category"
+              labelPlacement="outside"
+              className="max-w-xs"
+              variant="bordered"
+            >
+              {data?.categories.map((category) => (
+                <SelectItem
+                  key={category._id}
+                  value={category._id}
+                  textValue={category.name}
+                >
+                  <div className="flex gap-2 items-center">
+                    <Avatar
+                      alt={category.name}
+                      className="flex-shrink-0"
+                      size="sm"
+                      src={category.image}
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-small">{category.name}</span>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="mb-4">
+              <Select
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                label="Brand"
+                placeholder="Select a Brand"
+                labelPlacement="outside"
+                className="max-w-xs"
+                variant="bordered"
+              >
+                {data?.brands.map((brand) => (
+                  <SelectItem
+                    key={brand._id}
+                    value={brand._id}
+                    textValue={brand.name}
+                  >
+                    <div className="flex gap-2 items-center">
+                      <Avatar
+                        alt={brand.name}
+                        className="flex-shrink-0"
+                        size="sm"
+                        src={brand.image}
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-small">{brand.name}</span>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          <div className="mb-4 col-span-2">
+            <Textarea
+              label="Description"
+              placeholder="Enter your description"
+              className="max-w-xs"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              variant="bordered"
             />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12} sm={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Revenue Breakdown</Typography>
-            <ReactApexChart
-              options={revenueBreakdownOptions}
-              series={monthlyRevenue}
-              type="donut"
-              width="100%"
+          </div>
+
+          <Input
+            type="number"
+            label="Price"
+            placeholder="0.00"
+            labelPlacement="outside"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="max-w-xs"
+            variant="bordered"
+            startContent={
+              <div className="pointer-events-none flex items-center">
+                <span className="text-default-400 text-small">₹</span>
+              </div>
+            }
+          />
+
+          <div className="mb-4 col-span-2">
+            <Input
+              type="file"
+              onChange={handleImageChange}
+              multiple
+              label="Add Product Images"
+              variant="bordered"
+              className="max-w-xs"
+              required
             />
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
-  </Container>
-</motion.div>
-);
+            {images.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <motion.div
+                    key={index}
+                    className="relative"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <img
+                      src={URL.createObjectURL(image)}
+                      alt={`Preview ${index}`}
+                      className="w-full h-32 object-cover rounded-md border border-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <motion.button
+          type="submit"
+          className="bg-blue-500 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-600 transition-colors mt-6"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          disabled={isLoading} // Disable button while submitting
+        >
+          {isLoading ? "Uploading..." : "Upload Product"}
+        </motion.button>
+      </form>
+    </div>
+  );
 };
 
-export default OrderSummaryDashboard;
+export default UploadProduct;

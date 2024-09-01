@@ -26,7 +26,7 @@ export const useLogin = () => {
         navigate(role === "superadmin" ? "/super-admin" : "/admin-dashboard");
         toast.success("Login successful!");
       } else if (role === "viewer") {
-        navigate("/admin-dashboard");
+        navigate("products-list");
         toast.success("Login successful!");
       } else {
         toast.error("Unauthorized");
